@@ -29,7 +29,7 @@ namespace EuropeanMortalityAnalyzer.Views
             BuildExcessHistogram(workSheet);
         }
 
-        private string BaseName => $"{MortalityEvolution.TimeMode}{MinAgeText}{MaxAgeText}{MortalityEvolution.GenderMode}{WholePeriods}";
+        private string BaseName => $"{MortalityEvolution.Country}{MortalityEvolution.TimeMode}{MinAgeText}{MaxAgeText}{MortalityEvolution.GenderMode}{WholePeriods}";
 
         private ExcelWorksheet CreateSheet(ExcelPackage package)
         {
@@ -126,7 +126,7 @@ namespace EuropeanMortalityAnalyzer.Views
 
         private string GetSheetName()
         {
-            return $"By {TimeModeText}{AgeRange}{GenderModeText}";
+            return $"{MortalityEvolution.Country} By {TimeModeText}{AgeRange}{GenderModeText}";
         }
 
         private string AgeRange

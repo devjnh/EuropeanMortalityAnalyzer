@@ -19,10 +19,14 @@ class Program
         mortalityEvolution.MinAge = 5;
         mortalityEvolution.MaxAge = 40;
         mortalityEvolution.MinYearRegression = 2012;
-        mortalityEvolution.Country = "FR";
-        mortalityEvolution.Generate();
-        MortalityEvolutionView mortalityEvolutionView = new MortalityEvolutionView { MortalityEvolution = mortalityEvolution};
-        mortalityEvolutionView.Save();
+        string[] countries = new string[] { "FR", "ES", "IT" };
+        foreach (string country in countries)
+        {
+            mortalityEvolution.Country = country;
+            mortalityEvolution.Generate();
+            MortalityEvolutionView mortalityEvolutionView = new MortalityEvolutionView { MortalityEvolution = mortalityEvolution};
+            mortalityEvolutionView.Save();
+        }
         return 0;
     }
     private static DatabaseEngine GetDatabaseEngine(string dataFolder)
