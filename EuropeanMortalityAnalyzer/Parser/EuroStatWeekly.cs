@@ -11,7 +11,9 @@ namespace EuropeanMortalityAnalyzer.Parser
     internal class EuroStatWeekly
     {
         public DatabaseEngine DatabaseEngine { get; set; }
+        public AgeStructure AgeStructure { get; set; }
         public bool FilesInserted { get; set; } = false;
+        static public int ReferenceYear { get; set; } = 2022;
         public void Extract(string deathsLogFolder)
         {
             DatabaseEngine.Prepare(DeathStatistic.CreateDataTable(GenderFilter.All), false);
@@ -46,7 +48,15 @@ namespace EuropeanMortalityAnalyzer.Parser
                         int minAge = Convert.ToInt32(result.Groups[1].Value);
                         int maxAge = Convert.ToInt32(result.Groups[2].Value);
                         int deaths = Convert.ToInt32(count);
-                        DeathStatistic deathStatistic = new DeathStatistic { Age = minAge, AgeSpan = maxAge + 1 - minAge, Country = geo, Date = weekDate, Deaths = deaths };
+                        DeathStatistic deathStatistic = new DeathStatistic();
+                        deathStatistic.Age = minAge;
+                        deathStatistic.AgeSpan = maxAge + 1 - minAge;
+                        deathStatistic.Country = geo;
+                        deathStatistic.Date = weekDate;
+                        deathStatistic.Deaths = deaths;
+                        deathStatistic.Population = AgeStructure.GetPopulation(weekDate.Year, minAge, maxAge + 1, geo);
+                        deathStatistic.RefPopulation = AgeStructure.GetPopulation(ReferenceYear, minAge, maxAge + 1, geo);
+                        deathStatistic.StandardizedDeaths = (double)deathStatistic.Deaths * deathStatistic.RefPopulation / deathStatistic.Population;
                         DatabaseEngine.Insert(deathStatistic);
                     }
                 }
@@ -79,5 +89,6 @@ namespace EuropeanMortalityAnalyzer.Parser
             // Subtract 3 days from Thursday to get Monday, which is the first weekday in ISO8601
             return result.AddDays(-3);
         }
+        public bool IsBuilt => DatabaseEngine.DoesTableExist(DeathStatistic.StatisticsTableName);
     }
 }

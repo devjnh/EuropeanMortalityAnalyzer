@@ -9,14 +9,17 @@ class Program
     {
         string folder = Directory.GetCurrentDirectory();
         DatabaseEngine databaseEngine = GetDatabaseEngine(folder);
-        //EuroStatWeekly euroStatWeekly = new EuroStatWeekly { DatabaseEngine = databaseEngine};
-        //euroStatWeekly.Extract(folder);
+        AgeStructure ageStructure = new AgeStructure { DatabaseEngine = databaseEngine};
+        ageStructure.Load(folder);
+        EuroStatWeekly euroStatWeekly = new EuroStatWeekly { DatabaseEngine = databaseEngine, AgeStructure = ageStructure };
+        if (!euroStatWeekly.IsBuilt)
+            euroStatWeekly.Extract(folder);
         MortalityEvolution mortalityEvolution = new MortalityEvolution { DatabaseEngine = databaseEngine};
         mortalityEvolution.TimeMode = TimeMode.Semester;
         mortalityEvolution.MinAge = 5;
         mortalityEvolution.MaxAge = 40;
-        mortalityEvolution.MinYearRegression = 2015;
-        //mortalityEvolution.Country = "FR";
+        mortalityEvolution.MinYearRegression = 2012;
+        mortalityEvolution.Country = "FR";
         mortalityEvolution.Generate();
         MortalityEvolutionView mortalityEvolutionView = new MortalityEvolutionView { MortalityEvolution = mortalityEvolution};
         mortalityEvolutionView.Save();

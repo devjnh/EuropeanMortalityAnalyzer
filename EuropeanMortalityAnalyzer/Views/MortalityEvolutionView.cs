@@ -95,6 +95,8 @@ namespace EuropeanMortalityAnalyzer.Views
         private void BuildExcessHistogram(ExcelWorksheet workSheet)
         {
             int iStartRow = workSheet.Dimension.End.Row + 4;
+            if (iStartRow < 30)
+                iStartRow = 30;
             workSheet.Cells[iStartRow, 1].LoadFromDataTable(MortalityEvolution.ExcessHistogram, true);
             workSheet.Cells[iStartRow, 3, workSheet.Dimension.End.Row, 3].Style.Numberformat.Format = "0.0";
             ExcelRange rangeExcess = workSheet.Cells[iStartRow, 1, workSheet.Dimension.End.Row, 3];

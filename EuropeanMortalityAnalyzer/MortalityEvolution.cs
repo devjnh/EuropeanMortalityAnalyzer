@@ -1,4 +1,5 @@
 ﻿using CommandLine;
+using EuropeanMortalityAnalyzer.Parser;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -100,7 +101,7 @@ namespace EuropeanMortalityAnalyzer
                 conditionsBuilder.Append(" AND ");
             conditionsBuilder.Append(condition);
         }
-        private const string Query_Years = @"SELECT {1}, SUM(DeathStatistics{2}.Deaths) AS Standardized, SUM(DeathStatistics{2}.Deaths) AS Raw, MIN(Date) AS MinDate, MAX(Date) AS MaxDate FROM DeathStatistics{2}{0}
+        private const string Query_Years = @"SELECT {1}, SUM(DeathStatistics{2}.StandardizedDeaths) AS Standardized, SUM(DeathStatistics{2}.Deaths) AS Raw, MIN(Date) AS MinDate, MAX(Date) AS MaxDate FROM DeathStatistics{2}{0}
 GROUP BY {1}
 ORDER BY {1}";
 
@@ -215,13 +216,12 @@ ORDER BY {1}";
         {
             get
             {
-                //string sqlCommand = $"SELECT SUM(Population) FROM AgeStructure WHERE Year = {DeathStatistics.ReferenceYear}";
-                //if (MinAge >= 0)
-                //    sqlCommand += $" AND Age >= {MinAge}";
-                //if (MaxAge >= 0)
-                //    sqlCommand += $" AND Age < {MaxAge}";
-                //return Convert.ToInt32(DatabaseEngine.GetValue(sqlCommand));
-                return 10000;
+                string sqlCommand = $"SELECT SUM(Population) FROM AgeStructure WHERE Year = {EuroStatWeekly.ReferenceYear} AND Country = '{Country}' AND Gender = {(int)GenderMode}";
+                if (MinAge >= 0)
+                    sqlCommand += $" AND Age >= {MinAge}";
+                if (MaxAge >= 0)
+                    sqlCommand += $" AND Age < {MaxAge}";
+                return Convert.ToInt32(DatabaseEngine.GetValue(sqlCommand));
             }
         }
         double DeathRate { get; set; }
@@ -245,7 +245,7 @@ ORDER BY {1}";
             ExcessHistogram.Columns.Add("Excess", typeof(double));
             ExcessHistogram.Columns.Add("Frequency", typeof(double));
             ExcessHistogram.Columns.Add("Normal", typeof(double));
-            double[] standardizedDeaths = DataTable.AsEnumerable().Where(r => Convert.ToDouble(r.Field<object>(GetTimeGroupingField(TimeMode))) > MinYearRegression).Select(r => Convert.ToDouble(r.Field<long>("Standardized"))).ToArray();
+            double[] standardizedDeaths = DataTable.AsEnumerable().Where(r => Convert.ToDouble(r.Field<object>(GetTimeGroupingField(TimeMode))) > MinYearRegression).Select(r => r.Field<double>("Standardized")).ToArray();
             double averageDeaths = standardizedDeaths.Average();
             DeathRate = averageDeaths / Population;
             StandardDeviation = Math.Sqrt(DeathRate * (1 - DeathRate) * Population);
