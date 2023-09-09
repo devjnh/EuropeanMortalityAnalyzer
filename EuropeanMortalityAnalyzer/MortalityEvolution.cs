@@ -29,6 +29,7 @@ namespace EuropeanMortalityAnalyzer
         [Option('d', "Delay", Required = false, HelpText = "Delay in days between the last record and the max date used with the year to date mode")]
         public int ToDateDelay { get; set; } = 30;
         public string Country { get; set; }
+        public string[] Countries { get; set; }
         public DateTime LastDay { get; private set; } = DateTime.MaxValue;
         internal DatabaseEngine DatabaseEngine { get; set; }
         public DataTable DataTable { get; private set; }
@@ -54,8 +55,9 @@ namespace EuropeanMortalityAnalyzer
             string tablePostfix = string.Empty;
             if (GenderMode != GenderFilter.All)
                 tablePostfix = $"_{GenderMode}";
-            if (!string.IsNullOrWhiteSpace(Country))
-                AddCondition($"Country = '{Country}'", conditionBuilder);
+            string countryCondition = GetCountryCondition();
+            if (!string.IsNullOrWhiteSpace(countryCondition))
+                AddCondition(countryCondition, conditionBuilder);
             else
                 AddCondition($"Country NOT IN( 'AD', 'GE', 'UK', 'AL', 'AM') ", conditionBuilder);
             string query = string.Format(Query_Years, conditionBuilder.Length > 0 ? $" WHERE {conditionBuilder}" : "", GetTimeGroupingField(TimeMode), tablePostfix);
@@ -216,7 +218,8 @@ ORDER BY {1}";
         {
             get
             {
-                string sqlCommand = $"SELECT SUM(Population) FROM AgeStructure WHERE Year = {EuroStatWeekly.ReferenceYear} AND Country = '{Country}' AND Gender = {(int)GenderMode}";
+                string countryCondition = GetCountryCondition();
+                string sqlCommand = $"SELECT SUM(Population) FROM AgeStructure WHERE Year = {EuroStatWeekly.ReferenceYear} AND {countryCondition} AND Gender = {(int)GenderMode}";
                 if (MinAge >= 0)
                     sqlCommand += $" AND Age >= {MinAge}";
                 if (MaxAge >= 0)
@@ -224,6 +227,39 @@ ORDER BY {1}";
                 return Convert.ToInt32(DatabaseEngine.GetValue(sqlCommand));
             }
         }
+
+        private string GetCountryCondition()
+        {
+            string countryCondition = $"Country NOT IN( 'AD', 'GE', 'UK', 'AL', 'AM') "; ;
+            if (!string.IsNullOrEmpty(Country))
+                countryCondition = $"Country = '{Country}'";
+            else if (Countries != null && Countries.Length > 0)
+            {
+                string countrySqlList = String.Join(",", Countries.Select(c => String.Format("'{0}'", c)));
+                countryCondition = $"Country IN ({countrySqlList})";
+            }
+            return countryCondition;
+        }
+
+        public string GetCountryDisplayName()
+        {
+            if (!string.IsNullOrEmpty(Country))
+                return Country;
+            else if (Countries != null && Countries.Length > 0)
+                return string.Join(" ", Countries);
+            else
+                return string.Empty;
+        }
+        public string GetCountryInternalName()
+        {
+            if (!string.IsNullOrEmpty(Country))
+                return Country;
+            else if (Countries != null && Countries.Length > 0)
+                return string.Join("", Countries);
+            else
+                return string.Empty;
+        }
+
         double DeathRate { get; set; }
 
         void BuildExcessHistogram()

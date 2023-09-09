@@ -20,15 +20,27 @@ class Program
         mortalityEvolution.MaxAge = 40;
         mortalityEvolution.MinYearRegression = 2012;
         string[] countries = new string[] { "FR", "ES", "IT" };
-        foreach (string country in countries)
-        {
-            mortalityEvolution.Country = country;
-            mortalityEvolution.Generate();
-            MortalityEvolutionView mortalityEvolutionView = new MortalityEvolutionView { MortalityEvolution = mortalityEvolution};
-            mortalityEvolutionView.Save();
-        }
+        //foreach (string country in countries)
+        //{
+        //    mortalityEvolution.Country = country;
+        //    Generate(mortalityEvolution);
+        //}
+        //mortalityEvolution.TimeMode = TimeMode.DeltaYear;
+        mortalityEvolution.MinYearRegression = 2013;
+        mortalityEvolution.Country = null;
+        mortalityEvolution.Countries = new string[] { "LU", "BE", "NL", "CH", "FR", "ES", "DK" };
+        Generate(mortalityEvolution);
+
         return 0;
     }
+
+    private static void Generate(MortalityEvolution mortalityEvolution)
+    {
+        mortalityEvolution.Generate();
+        MortalityEvolutionView mortalityEvolutionView = new MortalityEvolutionView { MortalityEvolution = mortalityEvolution };
+        mortalityEvolutionView.Save();
+    }
+
     private static DatabaseEngine GetDatabaseEngine(string dataFolder)
     {
         string databaseFile = Path.Combine(dataFolder, "EuropeanMortality.db");
