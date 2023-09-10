@@ -25,8 +25,11 @@ namespace EuropeanMortalityAnalyzer.Views
             ExcelWorksheet workSheet = CreateSheet(package);
             BuildHeader(workSheet);
             BuildEvolutionTable(workSheet);
+            int iLastEvolutionRow = workSheet.Dimension.End.Row;
             BuildEvolutionChart(workSheet);
             BuildExcessHistogram(workSheet);
+            BuildExcessEvolutionChart(workSheet, iLastEvolutionRow);
+            BuildExcessPercentEvolutionChart(workSheet, iLastEvolutionRow);
         }
 
         private string BaseName => $"{MortalityEvolution.GetCountryInternalName()}{MortalityEvolution.TimeMode}{MinAgeText}{MaxAgeText}{MortalityEvolution.GenderMode}{WholePeriods}";
@@ -80,6 +83,22 @@ namespace EuropeanMortalityAnalyzer.Views
             var baselineSerie = evolutionChart.Series.Add(workSheet.Cells[3, 4, workSheet.Dimension.End.Row, 4], workSheet.Cells[3, 1, workSheet.Dimension.End.Row, 1]);
             baselineSerie.Header = "Baseline";
             evolutionChart.SetPosition(2, 0, 7, 0);
+            evolutionChart.SetSize(900, 500);
+        }
+        private void BuildExcessEvolutionChart(ExcelWorksheet workSheet, int iLastRow)
+        {
+            ExcelChart evolutionChart = workSheet.Drawings.AddChart("ExcessEvolutionChart", eChartType.ColumnClustered);
+            var standardizedDeathsSerie = evolutionChart.Series.Add(workSheet.Cells[3, 5, iLastRow, 5], workSheet.Cells[3, 1, iLastRow, 1]);
+            standardizedDeathsSerie.Header = "Excess deaths";
+            evolutionChart.SetPosition(workSheet.Dimension.End.Row + 10, 0, 7, 0);
+            evolutionChart.SetSize(900, 500);
+        }
+        private void BuildExcessPercentEvolutionChart(ExcelWorksheet workSheet, int iLastRow)
+        {
+            ExcelChart evolutionChart = workSheet.Drawings.AddChart("ExcessPercentEvolutionChart", eChartType.ColumnClustered);
+            var standardizedDeathsSerie = evolutionChart.Series.Add(workSheet.Cells[3, 6, iLastRow, 6], workSheet.Cells[3, 1, iLastRow, 1]);
+            standardizedDeathsSerie.Header = "Excess deaths (%)";
+            evolutionChart.SetPosition(workSheet.Dimension.End.Row + 40, 0, 7, 0);
             evolutionChart.SetSize(900, 500);
         }
 

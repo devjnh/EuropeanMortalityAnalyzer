@@ -41,6 +41,12 @@ namespace EuropeanMortalityAnalyzer
             else
                 LastDay = Convert.ToDateTime(DatabaseEngine.GetValue($"SELECT MAX(Date) FROM {DeathStatistic.StatisticsTableName}")).AddDays(-ToDateDelay);
 
+            string countryCondition = GetCountryCondition();
+            DateTime firstDay = Convert.ToDateTime(DatabaseEngine.GetValue($"SELECT MAX(MinDate) FROM (SELECT MIN(DATE) AS MinDate FROM {DeathStatistic.StatisticsTableName} WHERE {countryCondition} GROUP BY Country)")).AddDays(-ToDateDelay);
+            int minYear = firstDay.Year + 1;
+            if (MinYearRegression - 2 > minYear)
+                minYear = MinYearRegression - 2;
+
             string toDate = WholePeriods ? "" : " to date";
             Console.WriteLine($"Generating mortality evolution");
             StringBuilder conditionBuilder = new StringBuilder();
@@ -50,12 +56,11 @@ namespace EuropeanMortalityAnalyzer
                 AddCondition($"Age >= {MinAge}", conditionBuilder);
             if (MaxAge > 0)
                 AddCondition($"Age < {MaxAge}", conditionBuilder);
-            if (TimeMode == TimeMode.Semester)
-                AddCondition($"Year > {MinYearRegression-2}", conditionBuilder);
+            //if (TimeMode == TimeMode.Semester)
+                AddCondition($"Year >= {minYear}", conditionBuilder);
             string tablePostfix = string.Empty;
             if (GenderMode != GenderFilter.All)
                 tablePostfix = $"_{GenderMode}";
-            string countryCondition = GetCountryCondition();
             if (!string.IsNullOrWhiteSpace(countryCondition))
                 AddCondition(countryCondition, conditionBuilder);
             else
