@@ -52,7 +52,7 @@ namespace EuropeanMortalityAnalyzer.Parser
                         deathStatistic.Age = minAge;
                         deathStatistic.AgeSpan = maxAge + 1 - minAge;
                         deathStatistic.Country = geo;
-                        deathStatistic.Date = weekDate;
+                        deathStatistic.Date = weekDate.AddDays(3); // Use the date of the thursday (middle of the week)
                         deathStatistic.Deaths = deaths;
                         deathStatistic.Population = AgeStructure.GetPopulation(weekDate.Year, minAge, maxAge + 1, geo);
                         deathStatistic.RefPopulation = AgeStructure.GetPopulation(ReferenceYear, minAge, maxAge + 1, geo);
