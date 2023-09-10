@@ -245,7 +245,7 @@ ORDER BY {1}";
         {
             if (!string.IsNullOrEmpty(Country))
                 return Country;
-            else if (Countries != null && Countries.Length > 0)
+            else if (Countries != null && Countries.Length > 0 && Countries.Length < 5)
                 return string.Join(" ", Countries);
             else
                 return string.Empty;
@@ -255,7 +255,7 @@ ORDER BY {1}";
             if (!string.IsNullOrEmpty(Country))
                 return Country;
             else if (Countries != null && Countries.Length > 0)
-                return string.Join("", Countries);
+                return Countries.Length < 5 ? string.Join("", Countries) : "Multi";
             else
                 return string.Empty;
         }
