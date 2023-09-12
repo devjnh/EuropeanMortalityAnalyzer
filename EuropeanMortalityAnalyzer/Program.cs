@@ -8,14 +8,21 @@ class Program
 {
     static int Main(string[] args)
     {
-        string folder = Directory.GetCurrentDirectory();
-        DatabaseEngine databaseEngine = GetDatabaseEngine(folder);
-        AgeStructure ageStructure = new AgeStructure { DatabaseEngine = databaseEngine};
-        ageStructure.Load(folder);
+        MortalityEvolution mortalityEvolution = new MortalityEvolution();
+        if (!Directory.Exists(mortalityEvolution.Folder))
+            Directory.CreateDirectory(mortalityEvolution.Folder);
+
+        DatabaseEngine databaseEngine = GetDatabaseEngine(mortalityEvolution.Folder);
+        AgeStructure ageStructure = new AgeStructure { DatabaseEngine = databaseEngine };
+        ageStructure.Load(mortalityEvolution.Folder);
         EuroStatWeekly euroStatWeekly = new EuroStatWeekly { DatabaseEngine = databaseEngine, AgeStructure = ageStructure };
         if (!euroStatWeekly.IsBuilt)
-            euroStatWeekly.Extract(folder);
-        MortalityEvolution mortalityEvolution = new MortalityEvolution { DatabaseEngine = databaseEngine};
+            euroStatWeekly.Extract(mortalityEvolution.Folder);
+
+
+
+        mortalityEvolution.DatabaseEngine = databaseEngine;
+
         mortalityEvolution.TimeMode = TimeMode.Semester;
         mortalityEvolution.MinAge = 5;
         mortalityEvolution.MaxAge = 40;

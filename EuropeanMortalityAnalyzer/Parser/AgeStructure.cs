@@ -1,4 +1,5 @@
-﻿using OfficeOpenXml;
+﻿using EuropeanMortalityAnalyzer.Downloaders;
+using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -14,6 +15,7 @@ namespace EuropeanMortalityAnalyzer
     {
         public DataTable DataTable { get; private set; } = new DataTable { TableName = "AgeStructure" };
         public DatabaseEngine DatabaseEngine { get; set; }
+        const string SourceName = "demo_pjan";
 
         static AgeStructure()
         {
@@ -44,9 +46,11 @@ namespace EuropeanMortalityAnalyzer
 
         private void Extract(string baseFolder)
         {
+            EuroStatDownloader euroStatDownloader = new EuroStatDownloader(baseFolder);
+            euroStatDownloader.Download(SourceName);
             Console.WriteLine($"Extracting age structure");
 
-            using (FileStream fileStream = new FileStream(Path.Combine(baseFolder, "demo_pjan_linear.csv"), FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (FileStream fileStream = new FileStream(Path.Combine(baseFolder, $"{SourceName}.csv"), FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
                 using (StreamReader textReader = new StreamReader(fileStream))
                 {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EuropeanMortalityAnalyzer.Downloaders;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -15,10 +16,14 @@ namespace EuropeanMortalityAnalyzer.Parser
         public AgeStructure AgeStructure { get; set; }
         public bool FilesInserted { get; set; } = false;
         static public int ReferenceYear { get; set; } = 2022;
+        const string SourceName = "demo_r_mwk_05";
         public void Extract(string deathsLogFolder)
         {
+            EuroStatDownloader euroStatDownloader = new EuroStatDownloader(deathsLogFolder);
+            euroStatDownloader.Download(SourceName);
+            Console.WriteLine("Importing mortality statistics");
             DatabaseEngine.Prepare(DeathStatistic.CreateDataTable(GenderFilter.All), false);
-            using (FileStream fileStream = new FileStream(Path.Combine(deathsLogFolder, "demo_r_mwk_05_linear.csv"), FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (FileStream fileStream = new FileStream(Path.Combine(deathsLogFolder, $"{SourceName}.csv"), FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
                 using (StreamReader textReader = new StreamReader(fileStream))
                 {
@@ -39,7 +44,7 @@ namespace EuropeanMortalityAnalyzer.Parser
                         var result = regexWeek.Match(period);
                         if (!result.Success)
                             continue;
-                        int year = Convert.ToInt32(result.Groups[1].Value);
+                       int year = Convert.ToInt32(result.Groups[1].Value);
                         int week = Convert.ToInt32(result.Groups[2].Value);
                         DateTime weekDate = FirstDateOfWeekISO8601(year, week);
                         Regex regexAge = new Regex("Y([0-9]+)-([0-9]+)");
