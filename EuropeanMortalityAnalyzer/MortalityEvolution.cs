@@ -44,8 +44,10 @@ namespace EuropeanMortalityAnalyzer
             string countryCondition = GetCountryCondition();
             DateTime firstDay = Convert.ToDateTime(DatabaseEngine.GetValue($"SELECT MAX(MinDate) FROM (SELECT MIN(DATE) AS MinDate FROM {DeathStatistic.StatisticsTableName} WHERE {countryCondition} GROUP BY Country)")).AddDays(-ToDateDelay);
             int minYear = firstDay.Year + 1;
-            if (MinYearRegression - 2 > minYear)
-                minYear = MinYearRegression - 2;
+            if (MinYearRegression > minYear)
+                minYear = MinYearRegression;
+            else
+                MinYearRegression = minYear;
 
             string toDate = WholePeriods ? "" : " to date";
             Console.WriteLine($"Generating mortality evolution");
