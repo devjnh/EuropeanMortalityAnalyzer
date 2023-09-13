@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using EuropeanMortalityAnalyzer;
+using EuropeanMortalityAnalyzer.Downloaders;
 using EuropeanMortalityAnalyzer.Parser;
 using EuropeanMortalityAnalyzer.Views;
 using System.IO;
@@ -11,6 +12,9 @@ class Program
         MortalityEvolution mortalityEvolution = new MortalityEvolution();
         if (!Directory.Exists(mortalityEvolution.Folder))
             Directory.CreateDirectory(mortalityEvolution.Folder);
+
+        FileDownloader fileDownloader = new FileDownloader(mortalityEvolution.Folder);
+        fileDownloader.Download("https://covid.ourworldindata.org/data/owid-covid-data.csv");
 
         DatabaseEngine databaseEngine = GetDatabaseEngine(mortalityEvolution.Folder);
         AgeStructure ageStructure = new AgeStructure { DatabaseEngine = databaseEngine };
