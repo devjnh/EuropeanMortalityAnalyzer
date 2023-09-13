@@ -22,21 +22,19 @@ class Program
 
 
         mortalityEvolution.DatabaseEngine = databaseEngine;
-
         mortalityEvolution.TimeMode = TimeMode.Semester;
         mortalityEvolution.MinAge = 5;
         mortalityEvolution.MaxAge = 40;
-        mortalityEvolution.MinYearRegression = 2012;
+        mortalityEvolution.MinYearRegression = 2014;
+        mortalityEvolution.OutputFile = $"EuropeanMortality {mortalityEvolution.MinAge}-{mortalityEvolution.MaxAge}.xlsx";
         string[] countries = new string[] { "FR", "ES", "IT" };
-        //foreach (string country in countries)
-        //{
-        //    mortalityEvolution.Country = country;
-        //    Generate(mortalityEvolution);
-        //}
-        //mortalityEvolution.TimeMode = TimeMode.DeltaYear;
-        mortalityEvolution.MinYearRegression = 2013;
+        foreach (string country in countries)
+        {
+            mortalityEvolution.Country = country;
+            Generate(mortalityEvolution);
+        }
         mortalityEvolution.Country = null;
-        mortalityEvolution.Countries = new string[] { "LU", "BE", "NL", "CH", "FR", "ES", "DK" };
+        mortalityEvolution.Countries = new string[] { "LU", "BE", "NL", "CH", "FR", "ES", "DK", "AT", "IT" };
         Generate(mortalityEvolution);
 
         return 0;
