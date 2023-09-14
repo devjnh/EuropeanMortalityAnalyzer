@@ -13,9 +13,6 @@ class Program
         if (!Directory.Exists(mortalityEvolution.Folder))
             Directory.CreateDirectory(mortalityEvolution.Folder);
 
-        FileDownloader fileDownloader = new FileDownloader(mortalityEvolution.Folder);
-        fileDownloader.Download("https://covid.ourworldindata.org/data/owid-covid-data.csv");
-
         DatabaseEngine databaseEngine = GetDatabaseEngine(mortalityEvolution.Folder);
         AgeStructure ageStructure = new AgeStructure { DatabaseEngine = databaseEngine };
         ageStructure.Load(mortalityEvolution.Folder);
@@ -23,7 +20,9 @@ class Program
         if (!euroStatWeekly.IsBuilt)
             euroStatWeekly.Extract(mortalityEvolution.Folder);
 
-
+        EcdcCovidVaxData owidCovidVaxData = new EcdcCovidVaxData { DatabaseEngine = databaseEngine};
+        if (!owidCovidVaxData.IsBuilt)
+            owidCovidVaxData.Extract(mortalityEvolution.Folder);
 
         mortalityEvolution.DatabaseEngine = databaseEngine;
         mortalityEvolution.TimeMode = TimeMode.Semester;

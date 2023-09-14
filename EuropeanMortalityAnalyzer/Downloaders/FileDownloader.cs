@@ -15,14 +15,14 @@ namespace EuropeanMortalityAnalyzer.Downloaders
             LogFolder = logFolder;
         }
         public string LogFolder { get; }
-        public string FileName { get; private set; }
-        public void Download(string url)
+        public string Download(string url)
         {
             Uri uri = new Uri(url);
-            FileName = System.IO.Path.GetFileName(uri.LocalPath);
-            Download(FileName, url);
+            string fileName = System.IO.Path.GetFileName(uri.LocalPath);
+            Download(fileName, url);
+            return fileName;
         }
-        protected void Download(string fileName, string url)
+        public void Download(string fileName, string url)
         {
             Console.WriteLine($"Downloading file {fileName} {url}");
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
