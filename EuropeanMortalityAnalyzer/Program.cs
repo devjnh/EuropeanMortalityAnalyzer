@@ -25,7 +25,7 @@ class Program
             owidCovidVaxData.Extract(mortalityEvolution.Folder);
 
         mortalityEvolution.DatabaseEngine = databaseEngine;
-        mortalityEvolution.TimeMode = TimeMode.Semester;
+        mortalityEvolution.TimeMode = TimeMode.Quarter;
         mortalityEvolution.MinAge = 5;
         mortalityEvolution.MaxAge = 40;
         mortalityEvolution.MinYearRegression = 2014;

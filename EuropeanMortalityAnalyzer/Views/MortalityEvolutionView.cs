@@ -45,6 +45,15 @@ namespace EuropeanMortalityAnalyzer.Views
             return workSheet;
         }
 
+        string GetYearFormat(TimeMode timeMode)
+        {
+            return timeMode switch
+            {
+                TimeMode.Semester => "0.0",
+                TimeMode.Quarter => "0.00",
+                _ => "",
+            };
+        }
         private void BuildEvolutionTable(ExcelWorksheet workSheet)
         {
             workSheet.Cells[3, 1].LoadFromDataTable(MortalityEvolution.DataTable, true);
@@ -64,8 +73,9 @@ namespace EuropeanMortalityAnalyzer.Views
 
             workSheet.Cells[3, 2, workSheet.Dimension.End.Row, 2].Style.Numberformat.Format = "0.0";
             workSheet.Cells[3, 4, workSheet.Dimension.End.Row, 5].Style.Numberformat.Format = "0.0";
-            if (MortalityEvolution.TimeMode == TimeMode.Semester)
-                workSheet.Cells[3, 1, workSheet.Dimension.End.Row, 2].Style.Numberformat.Format = "0.0";
+            string yearFormat = GetYearFormat(MortalityEvolution.TimeMode);
+            if (!string.IsNullOrEmpty(yearFormat))
+                workSheet.Cells[3, 1, workSheet.Dimension.End.Row, 2].Style.Numberformat.Format = yearFormat;
             workSheet.Cells[3, 6].Value = "Excess %";
             workSheet.Cells[3, 6, workSheet.Dimension.End.Row, 6].Style.Numberformat.Format = "0.0%";
         }
@@ -191,6 +201,7 @@ namespace EuropeanMortalityAnalyzer.Views
             {
                 case TimeMode.DeltaYear: return "Delta Year";
                 case TimeMode.Semester: return "Semester";
+                case TimeMode.Quarter: return "Quarter";
                 default: return "Year";
 
             }
