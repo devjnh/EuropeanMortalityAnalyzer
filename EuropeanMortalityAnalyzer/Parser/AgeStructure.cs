@@ -1,4 +1,5 @@
 ﻿using MortalityAnalyzer.Downloaders;
+using MortalityAnalyzer.Model;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
