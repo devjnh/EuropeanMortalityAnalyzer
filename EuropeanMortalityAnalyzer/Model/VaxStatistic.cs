@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EuropeanMortalityAnalyzer.Model
+namespace MortalityAnalyzer.Model
 {
     internal class VaxStatistic : BaseStatistic
     {

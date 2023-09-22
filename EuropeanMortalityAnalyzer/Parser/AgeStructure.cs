@@ -1,4 +1,4 @@
-﻿using EuropeanMortalityAnalyzer.Downloaders;
+﻿using MortalityAnalyzer.Downloaders;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace EuropeanMortalityAnalyzer
+namespace MortalityAnalyzer
 {
     class AgeStructure
     {

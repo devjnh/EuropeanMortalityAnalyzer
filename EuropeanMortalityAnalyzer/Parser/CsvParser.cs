@@ -1,6 +1,6 @@
-﻿using EuropeanMortalityAnalyzer.Downloaders;
-using EuropeanMortalityAnalyzer.Model;
-using EuropeanMortalityAnalyzer.Parser;
+﻿using MortalityAnalyzer.Downloaders;
+using MortalityAnalyzer.Model;
+using MortalityAnalyzer.Parser;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -11,7 +11,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace EuropeanMortalityAnalyzer.Parser
+namespace MortalityAnalyzer.Parser
 {
     internal abstract class CsvParser
     {

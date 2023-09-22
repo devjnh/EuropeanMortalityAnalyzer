@@ -7,7 +7,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EuropeanMortalityAnalyzer.Downloaders
+namespace MortalityAnalyzer.Downloaders
 {
     internal class EuroStatDownloader : FileDownloader
     {

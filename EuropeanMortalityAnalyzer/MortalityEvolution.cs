@@ -1,5 +1,5 @@
 ﻿using CommandLine;
-using EuropeanMortalityAnalyzer.Parser;
+using MortalityAnalyzer.Parser;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EuropeanMortalityAnalyzer
+namespace MortalityAnalyzer
 {
     [Verb("evolution", HelpText = "French mortality evolution by years/semesters")]
     public class MortalityEvolution : Options

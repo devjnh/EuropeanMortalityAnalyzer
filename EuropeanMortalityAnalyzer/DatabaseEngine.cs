@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EuropeanMortalityAnalyzer
+namespace MortalityAnalyzer
 {
     class DatabaseEngine : IDisposable
     {

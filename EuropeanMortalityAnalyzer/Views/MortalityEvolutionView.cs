@@ -10,7 +10,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 
-namespace EuropeanMortalityAnalyzer.Views
+namespace MortalityAnalyzer.Views
 {
     internal class MortalityEvolutionView
     {

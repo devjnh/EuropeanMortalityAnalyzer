@@ -1,8 +1,8 @@
 ﻿// See https://aka.ms/new-console-template for more information
-using EuropeanMortalityAnalyzer;
-using EuropeanMortalityAnalyzer.Downloaders;
-using EuropeanMortalityAnalyzer.Parser;
-using EuropeanMortalityAnalyzer.Views;
+using MortalityAnalyzer;
+using MortalityAnalyzer.Downloaders;
+using MortalityAnalyzer.Parser;
+using MortalityAnalyzer.Views;
 using System.IO;
 
 class Program
