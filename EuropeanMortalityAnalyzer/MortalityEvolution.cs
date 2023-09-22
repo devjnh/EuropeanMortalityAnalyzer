@@ -1,6 +1,5 @@
 ﻿using CommandLine;
 using MortalityAnalyzer.Model;
-using MortalityAnalyzer.Parser;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -41,32 +40,18 @@ namespace MortalityAnalyzer
                 LastDay = Convert.ToDateTime(DatabaseEngine.GetValue($"SELECT MAX(Date) FROM {DeathStatistic.StatisticsTableName}")).AddDays(-ToDateDelay);
 
             string countryCondition = GetCountryCondition();
-            DateTime firstDay = Convert.ToDateTime(DatabaseEngine.GetValue($"SELECT MAX(MinDate) FROM (SELECT MIN(DATE) AS MinDate FROM {DeathStatistic.StatisticsTableName} WHERE {countryCondition} GROUP BY Country)")).AddDays(-ToDateDelay);
-            int minYear = firstDay.Year + 1;
-            if (MinYearRegression > minYear)
-                minYear = MinYearRegression;
-            else
-                MinYearRegression = minYear;
+            AdjustMinYearRegression(countryCondition);
 
             string toDate = WholePeriods ? "" : " to date";
             Console.WriteLine($"Generating mortality evolution");
             StringBuilder conditionBuilder = new StringBuilder();
-            if (!WholePeriods)
-                AddCondition($"DayOfYear <= {LastDay.DayOfYear}", conditionBuilder);
-            if (MinAge > 0)
-                AddCondition($"Age >= {MinAge}", conditionBuilder);
-            if (MaxAge > 0)
-                AddCondition($"Age < {MaxAge}", conditionBuilder);
-            //if (TimeMode == TimeMode.Semester)
-            AddCondition($"Year >= {minYear}", conditionBuilder);
+            AddConditions(conditionBuilder);
+            if (!string.IsNullOrWhiteSpace(countryCondition))
+                AddCondition(countryCondition, conditionBuilder);
             string tablePostfix = string.Empty;
             if (GenderMode != GenderFilter.All)
                 tablePostfix = $"_{GenderMode}";
-            if (!string.IsNullOrWhiteSpace(countryCondition))
-                AddCondition(countryCondition, conditionBuilder);
-            else
-                AddCondition($"Country NOT IN( 'AD', 'GE', 'UK', 'AL', 'AM') ", conditionBuilder);
-            string query = string.Format(Query_Years, conditionBuilder.Length > 0 ? $" WHERE {conditionBuilder}" : "", GetTimeGroupingField(TimeMode), tablePostfix);
+            string query = string.Format(GetQueryTemplate(), conditionBuilder.Length > 0 ? $" WHERE {conditionBuilder}" : "", GetTimeGroupingField(TimeMode), tablePostfix);
             DataTable = DatabaseEngine.GetDataTable(query);
             if (TimeMode == TimeMode.DeltaYear)
                 DataTable.Rows.Remove(DataTable.Rows[0]);
@@ -75,16 +60,45 @@ namespace MortalityAnalyzer
             if (WholePeriods)
                 foreach (DataRow dataRow in DataTable.Rows)
                 {
-                    double days = GetPeriodLength(Convert.ToDateTime(dataRow[3]), Convert.ToDateTime(dataRow[4]).AddDays(7));
+                    double days = GetPeriodLength(dataRow);
                     dataRow[1] = Convert.ToDouble(dataRow[1]) * StandardizedPeriodLength / days; // Standardize according to period length
                 }
-            DataTable.Columns.Remove("MaxDate");
-            DataTable.Columns.Remove("MinDate");
+            CleanDataTable();
             BuildLinearRegression(DataTable, MinYearRegression, MaxYearRegression);
             BuildExcessHistogram();
         }
 
+        protected string GetQueryTemplate()
+        {
+            return Query_Years;
+        }
 
+        protected void CleanDataTable()
+        {
+            DataTable.Columns.Remove("MaxDate");
+            DataTable.Columns.Remove("MinDate");
+        }
+
+        protected void AdjustMinYearRegression(string countryCondition)
+        {
+            DateTime firstDay = Convert.ToDateTime(DatabaseEngine.GetValue($"SELECT MAX(MinDate) FROM (SELECT MIN(DATE) AS MinDate FROM {DeathStatistic.StatisticsTableName} WHERE {countryCondition} GROUP BY Country)")).AddDays(-ToDateDelay);
+            int minYear = firstDay.Year + 1;
+            if (MinYearRegression > minYear)
+                minYear = MinYearRegression;
+            else
+                MinYearRegression = minYear;
+        }
+
+        protected void AddConditions(StringBuilder conditionBuilder)
+        {
+            if (!WholePeriods)
+                AddCondition($"DayOfYear <= {LastDay.DayOfYear}", conditionBuilder);
+            if (MinAge > 0)
+                AddCondition($"Age >= {MinAge}", conditionBuilder);
+            if (MaxAge > 0)
+                AddCondition($"Age < {MaxAge}", conditionBuilder);
+            AddCondition($"Year > {MinYearRegression}", conditionBuilder);
+        }
 
         public double StandardizedPeriodLength => 365 * PeriodInFractionOfYear;
 
@@ -112,6 +126,11 @@ namespace MortalityAnalyzer
                     _ => 12
                 };
             }
+        }
+
+        protected double GetPeriodLength(DataRow dataRow)
+        {
+            return GetPeriodLength(Convert.ToDateTime(dataRow[3]), Convert.ToDateTime(dataRow[4]).AddDays(7));
         }
 
         private double GetPeriodLength(double period)
@@ -258,14 +277,21 @@ ORDER BY {1}";
         {
             get
             {
+                string sqlCommand = GetPopulationSqlQuery();
                 string countryCondition = GetCountryCondition();
-                string sqlCommand = $"SELECT SUM(Population) FROM AgeStructure WHERE Year = {EuroStatWeekly.ReferenceYear} AND {countryCondition} AND Gender = {(int)GenderMode}";
+                if (!string.IsNullOrEmpty(countryCondition))
+                    sqlCommand += $" AND {countryCondition}";
                 if (MinAge >= 0)
                     sqlCommand += $" AND Age >= {MinAge}";
                 if (MaxAge >= 0)
                     sqlCommand += $" AND Age < {MaxAge}";
                 return Convert.ToInt32(DatabaseEngine.GetValue(sqlCommand));
             }
+        }
+
+        protected string GetPopulationSqlQuery()
+        {
+            return $"SELECT SUM(Population) FROM AgeStructure WHERE Year = {AgeStructure.ReferenceYear} AND Gender = {(int)GenderMode}";
         }
 
         public string Country { get; set; }

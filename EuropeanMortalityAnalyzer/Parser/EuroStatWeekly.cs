@@ -16,7 +16,6 @@ namespace MortalityAnalyzer.Parser
     {
         public AgeStructure AgeStructure { get; set; }
         public bool FilesInserted { get; set; } = false;
-        static public int ReferenceYear { get; set; } = 2022;
         const string SourceName = "demo_r_mwk_05";
         public void Extract(string deathsLogFolder)
         {
@@ -61,7 +60,7 @@ namespace MortalityAnalyzer.Parser
             deathStatistic.Date = weekDate.AddDays(3); // Use the date of the thursday (middle of the week)
             deathStatistic.Deaths = deaths;
             deathStatistic.Population = AgeStructure.GetPopulation(weekDate.Year, minAge, maxAge + 1, geo);
-            deathStatistic.RefPopulation = AgeStructure.GetPopulation(ReferenceYear, minAge, maxAge + 1, geo);
+            deathStatistic.RefPopulation = AgeStructure.GetPopulation(AgeStructure.ReferenceYear, minAge, maxAge + 1, geo);
             deathStatistic.StandardizedDeaths = (double)deathStatistic.Deaths * deathStatistic.RefPopulation / deathStatistic.Population;
 
             return deathStatistic;
