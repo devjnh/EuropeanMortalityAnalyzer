@@ -31,8 +31,7 @@ namespace MortalityAnalyzer
         internal DatabaseEngine DatabaseEngine { get; set; }
         public DataTable DataTable { get; private set; }
         public bool WholePeriods => TimeMode != TimeMode.YearToDate;
-        public string Country { get; set; }
-        public string[] Countries { get; set; }
+        
         public void Generate()
         {
             if (WholePeriods)
@@ -156,7 +155,7 @@ ORDER BY {1}";
             List<double> yVals = new List<double>();
             foreach (DataRow dataRow in dataTable.Rows)
             {
-                double year = Convert.ToDouble(dataRow[0]);
+                double year = TimeToDouble(dataRow[0]);
                 if (year < minYearRegression || year >= maxYearRegression)
                     continue;
                 xVals.Add(year);
@@ -169,7 +168,7 @@ ORDER BY {1}";
             dataTable.Columns.Add("RelativeExcess", typeof(double));
             foreach (DataRow dataRow in dataTable.Rows)
             {
-                double year = Convert.ToDouble(dataRow[0]);
+                double year = TimeToDouble(dataRow[0]);
                 double baseLine = yintercept + slope * year;
                 dataRow["BaseLine"] = baseLine;
                 double excess = Convert.ToDouble(dataRow[1]) - baseLine;
@@ -177,6 +176,12 @@ ORDER BY {1}";
                 dataRow["RelativeExcess"] = excess / baseLine;
             }
         }
+
+        private static double TimeToDouble(object value)
+        {
+            return value is DateTime ? ((DateTime)value).ToOADate() : Convert.ToDouble(value);
+        }
+
         /// <summary>
         /// Fits a line to a collection of (x,y) points.
         /// </summary>
@@ -261,6 +266,9 @@ ORDER BY {1}";
                 return Convert.ToInt32(DatabaseEngine.GetValue(sqlCommand));
             }
         }
+
+        public string Country { get; set; }
+        public string[] Countries { get; set; }
 
         private string GetCountryCondition()
         {
