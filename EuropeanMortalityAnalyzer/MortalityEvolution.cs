@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 
 namespace MortalityAnalyzer
 {
-    [Verb("evolution", HelpText = "French mortality evolution by years/semesters")]
     public class MortalityEvolution : Options
     {
         [Option("MinYearRegression", Required = false, HelpText = "2012 by default")]
@@ -28,12 +27,12 @@ namespace MortalityAnalyzer
         public bool DisplayRawDeaths { get; set; } = false;
         [Option('d', "Delay", Required = false, HelpText = "Delay in days between the last record and the max date used with the year to date mode")]
         public int ToDateDelay { get; set; } = 30;
-        public string Country { get; set; }
-        public string[] Countries { get; set; }
         public DateTime LastDay { get; private set; } = DateTime.MaxValue;
         internal DatabaseEngine DatabaseEngine { get; set; }
         public DataTable DataTable { get; private set; }
         public bool WholePeriods => TimeMode != TimeMode.YearToDate;
+        public string Country { get; set; }
+        public string[] Countries { get; set; }
         public void Generate()
         {
             if (WholePeriods)
@@ -131,13 +130,13 @@ namespace MortalityAnalyzer
             return days;
         }
 
-        private void AddCondition(string condition, StringBuilder conditionsBuilder)
+        protected void AddCondition(string condition, StringBuilder conditionsBuilder)
         {
             if (conditionsBuilder.Length > 0)
                 conditionsBuilder.Append(" AND ");
             conditionsBuilder.Append(condition);
         }
-        private const string Query_Years = @"SELECT {1}, SUM(DeathStatistics{2}.StandardizedDeaths) AS Standardized, SUM(DeathStatistics{2}.Deaths) AS Raw, MIN(Date) AS MinDate, MAX(Date) AS MaxDate FROM DeathStatistics{2}{0}
+        protected const string Query_Years = @"SELECT {1}, SUM(DeathStatistics{2}.StandardizedDeaths) AS Standardized, SUM(DeathStatistics{2}.Deaths) AS Raw, MIN(Date) AS MinDate, MAX(Date) AS MaxDate FROM DeathStatistics{2}{0}
 GROUP BY {1}
 ORDER BY {1}";
 
@@ -151,7 +150,7 @@ ORDER BY {1}";
                 default: return nameof(DeathStatistic.Year);
             }
         }
-        private void BuildLinearRegression(DataTable dataTable, int minYearRegression, int maxYearRegression)
+        protected static void BuildLinearRegression(DataTable dataTable, int minYearRegression, int maxYearRegression)
         {
             List<double> xVals = new List<double>();
             List<double> yVals = new List<double>();
