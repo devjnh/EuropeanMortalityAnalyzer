@@ -9,7 +9,7 @@ class Program
 {
     static int Main(string[] args)
     {
-        MortalityEvolution mortalityEvolution = new MortalityEvolution();
+        EuropeanMortalityEvolution mortalityEvolution = new EuropeanMortalityEvolution();
         if (!Directory.Exists(mortalityEvolution.Folder))
             Directory.CreateDirectory(mortalityEvolution.Folder);
 

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace MortalityAnalyzer
 {
-    public class MortalityEvolution : Options
+    public abstract class MortalityEvolution : Options
     {
         [Option("MinYearRegression", Required = false, HelpText = "2012 by default")]
         public int MinYearRegression { get; set; } = 2012;
@@ -68,27 +68,6 @@ namespace MortalityAnalyzer
             BuildExcessHistogram();
         }
 
-        protected string GetQueryTemplate()
-        {
-            return Query_Years;
-        }
-
-        protected void CleanDataTable()
-        {
-            DataTable.Columns.Remove("MaxDate");
-            DataTable.Columns.Remove("MinDate");
-        }
-
-        protected void AdjustMinYearRegression(string countryCondition)
-        {
-            DateTime firstDay = Convert.ToDateTime(DatabaseEngine.GetValue($"SELECT MAX(MinDate) FROM (SELECT MIN(DATE) AS MinDate FROM {DeathStatistic.StatisticsTableName} WHERE {countryCondition} GROUP BY Country)")).AddDays(-ToDateDelay);
-            int minYear = firstDay.Year + 1;
-            if (MinYearRegression > minYear)
-                minYear = MinYearRegression;
-            else
-                MinYearRegression = minYear;
-        }
-
         protected void AddConditions(StringBuilder conditionBuilder)
         {
             if (!WholePeriods)
@@ -97,7 +76,7 @@ namespace MortalityAnalyzer
                 AddCondition($"Age >= {MinAge}", conditionBuilder);
             if (MaxAge > 0)
                 AddCondition($"Age < {MaxAge}", conditionBuilder);
-            AddCondition($"Year > {MinYearRegression}", conditionBuilder);
+            AddCondition($"Year >= {MinYearRegression}", conditionBuilder);
         }
 
         public double StandardizedPeriodLength => 365 * PeriodInFractionOfYear;
@@ -128,12 +107,7 @@ namespace MortalityAnalyzer
             }
         }
 
-        protected double GetPeriodLength(DataRow dataRow)
-        {
-            return GetPeriodLength(Convert.ToDateTime(dataRow[3]), Convert.ToDateTime(dataRow[4]).AddDays(7));
-        }
-
-        private double GetPeriodLength(double period)
+        protected double GetPeriodLength(double period)
         {
             int year = (int)period;
             int month = TimeMode == TimeMode.DeltaYear ? 7 : (int)((period - year) * 12) + 1;
@@ -142,7 +116,7 @@ namespace MortalityAnalyzer
             double days = (periodEnd - periodStart).TotalDays;
             return days;
         }
-        private double GetPeriodLength(DateTime periodStart, DateTime periodEnd)
+        protected double GetPeriodLength(DateTime periodStart, DateTime periodEnd)
         {
 
             double days = (periodEnd - periodStart).TotalDays;
@@ -155,9 +129,6 @@ namespace MortalityAnalyzer
                 conditionsBuilder.Append(" AND ");
             conditionsBuilder.Append(condition);
         }
-        protected const string Query_Years = @"SELECT {1}, SUM(DeathStatistics{2}.StandardizedDeaths) AS Standardized, SUM(DeathStatistics{2}.Deaths) AS Raw, MIN(Date) AS MinDate, MAX(Date) AS MaxDate FROM DeathStatistics{2}{0}
-GROUP BY {1}
-ORDER BY {1}";
 
         string GetTimeGroupingField(TimeMode mode)
         {
@@ -289,45 +260,6 @@ ORDER BY {1}";
             }
         }
 
-        protected string GetPopulationSqlQuery()
-        {
-            return $"SELECT SUM(Population) FROM AgeStructure WHERE Year = {AgeStructure.ReferenceYear} AND Gender = {(int)GenderMode}";
-        }
-
-        public string Country { get; set; }
-        public string[] Countries { get; set; }
-
-        private string GetCountryCondition()
-        {
-            string countryCondition = $"Country NOT IN( 'AD', 'GE', 'UK', 'AL', 'AM') "; ;
-            if (!string.IsNullOrEmpty(Country))
-                countryCondition = $"Country = '{Country}'";
-            else if (Countries != null && Countries.Length > 0)
-            {
-                string countrySqlList = String.Join(",", Countries.Select(c => String.Format("'{0}'", c)));
-                countryCondition = $"Country IN ({countrySqlList})";
-            }
-            return countryCondition;
-        }
-
-        public string GetCountryDisplayName()
-        {
-            if (!string.IsNullOrEmpty(Country))
-                return Country;
-            else if (Countries != null && Countries.Length > 0 && Countries.Length < 5)
-                return string.Join(" ", Countries);
-            else
-                return string.Empty;
-        }
-        public string GetCountryInternalName()
-        {
-            if (!string.IsNullOrEmpty(Country))
-                return Country;
-            else if (Countries != null && Countries.Length > 0)
-                return Countries.Length < 5 ? string.Join("", Countries) : "Multi";
-            else
-                return string.Empty;
-        }
 
         double DeathRate { get; set; }
 
@@ -367,6 +299,22 @@ ORDER BY {1}";
                 ExcessHistogram.Rows.Add(dataRow);
             }
         }
+        protected abstract string GetQueryTemplate();
+
+        protected virtual void CleanDataTable()
+        {
+        }
+
+        protected virtual void AdjustMinYearRegression(string countryCondition)
+        {
+        }
+
+        protected abstract double GetPeriodLength(DataRow dataRow);
+
+        protected abstract string GetPopulationSqlQuery();
+        protected virtual string GetCountryCondition() => String.Empty;
+        public virtual string GetCountryDisplayName() => String.Empty;
+        public virtual string GetCountryInternalName() => String.Empty;
     }
     public enum TimeMode { Year, DeltaYear, Semester, Quarter, YearToDate }
 }
