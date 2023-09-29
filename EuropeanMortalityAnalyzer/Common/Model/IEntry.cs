@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MortalityAnalyzer
+namespace MortalityAnalyzer.Model
 {
     internal interface IEntry
     {

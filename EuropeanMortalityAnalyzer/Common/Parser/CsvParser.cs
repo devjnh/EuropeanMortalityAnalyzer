@@ -1,6 +1,5 @@
 ﻿using MortalityAnalyzer.Downloaders;
 using MortalityAnalyzer.Model;
-using MortalityAnalyzer.Parser;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -17,6 +16,8 @@ namespace MortalityAnalyzer.Parser
     {
         public DatabaseEngine DatabaseEngine { get; set; }
 
+        public char Separator { get; set; } = ',';
+
         Dictionary<string, int> _Fields = new Dictionary<string, int>();
         protected void ImportFromCsvFile(string filePath)
         {
@@ -26,13 +27,13 @@ namespace MortalityAnalyzer.Parser
                 using (StreamReader textReader = new StreamReader(fileStream))
                 {
                     string line = textReader.ReadLine();
-                    string[] fields = line.Split(',');
+                    string[] fields = line.Split(Separator);
                     for (int i = 0; i < fields.Length; i++)
                         this._Fields[fields[i]] = i;
                     while (!textReader.EndOfStream)
                     {
                         line = textReader.ReadLine();
-                        IEntry entry = GetEntry(line.Split(','));
+                        IEntry entry = GetEntry(line.Split(Separator));
                         if (entry != null)
                             DatabaseEngine.Insert(entry);
                     }
