@@ -33,11 +33,11 @@ class Program
         string[] countries = new string[] { "FR", "ES", "IT" };
         foreach (string country in countries)
         {
-            mortalityEvolution.Country = country;
+            mortalityEvolution.EuropeanImplementation.Country = country;
             Generate(mortalityEvolution);
         }
-        mortalityEvolution.Country = null;
-        mortalityEvolution.Countries = new string[] { "LU", "BE", "NL", "CH", "FR", "ES", "DK", "AT", "IT" };
+        mortalityEvolution.EuropeanImplementation.Country = null;
+        mortalityEvolution.EuropeanImplementation.Countries = new string[] { "LU", "BE", "NL", "CH", "FR", "ES", "DK", "AT", "IT" };
         Generate(mortalityEvolution);
 
         return 0;
