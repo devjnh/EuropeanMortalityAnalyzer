@@ -3,13 +3,21 @@ using MortalityAnalyzer;
 using MortalityAnalyzer.Downloaders;
 using MortalityAnalyzer.Parser;
 using MortalityAnalyzer.Views;
+using System;
 using System.IO;
 
 class Program
 {
     static int Main(string[] args)
     {
-        EuropeanMortalityEvolution mortalityEvolution = new EuropeanMortalityEvolution();
+        Build(new EuropeanMortalityEvolution(), GenerateMortality);
+        //Build(new EuropeanVaccinationEvolution(), GenerateVaccination);
+
+        return 0;
+    }
+
+    private static void Build(MortalityEvolution mortalityEvolution, Action<MortalityEvolution> generationRoutine)
+    {
         if (!Directory.Exists(mortalityEvolution.Folder))
             Directory.CreateDirectory(mortalityEvolution.Folder);
 
@@ -20,7 +28,7 @@ class Program
         if (!euroStatWeekly.IsBuilt)
             euroStatWeekly.Extract(mortalityEvolution.Folder);
 
-        EcdcCovidVaxData owidCovidVaxData = new EcdcCovidVaxData { DatabaseEngine = databaseEngine};
+        EcdcCovidVaxData owidCovidVaxData = new EcdcCovidVaxData { DatabaseEngine = databaseEngine };
         if (!owidCovidVaxData.IsBuilt)
             owidCovidVaxData.Extract(mortalityEvolution.Folder);
 
@@ -33,21 +41,25 @@ class Program
         string[] countries = new string[] { "FR", "ES", "IT" };
         foreach (string country in countries)
         {
-            mortalityEvolution.EuropeanImplementation.Country = country;
-            Generate(mortalityEvolution);
+            ((EuropeanImplementation)mortalityEvolution.Implementation).Country = country;
+            generationRoutine((MortalityEvolution)mortalityEvolution);
         }
-        mortalityEvolution.EuropeanImplementation.Country = null;
-        mortalityEvolution.EuropeanImplementation.Countries = new string[] { "LU", "BE", "NL", "CH", "FR", "ES", "DK", "AT", "IT" };
-        Generate(mortalityEvolution);
-
-        return 0;
+        ((EuropeanImplementation)mortalityEvolution.Implementation).Country = null;
+        ((EuropeanImplementation)mortalityEvolution.Implementation).Countries = new string[] { "LU", "BE", "NL", "CH", "FR", "ES", "DK", "AT", "IT" };
+        generationRoutine((MortalityEvolution)mortalityEvolution);
     }
 
-    private static void Generate(MortalityEvolution mortalityEvolution)
+    private static void GenerateMortality(MortalityEvolution mortalityEvolution)
     {
         mortalityEvolution.Generate();
         MortalityEvolutionView mortalityEvolutionView = new MortalityEvolutionView { MortalityEvolution = mortalityEvolution };
         mortalityEvolutionView.Save();
+    }
+    private static void GenerateVaccination(MortalityEvolution mortalityEvolution)
+    {
+        mortalityEvolution.Generate();
+        VaccinationEvolutionView vaccinationEvolutionView = new VaccinationEvolutionView { MortalityEvolution = (VaccinationEvolution)mortalityEvolution };
+        vaccinationEvolutionView.Save();
     }
 
     private static DatabaseEngine GetDatabaseEngine(string dataFolder)
