@@ -20,10 +20,10 @@ ORDER BY {1}";
             return Query_Years;
         }
 
-        public override void CleanDataTable()
+        public override void CleanDataTable(DataTable dataTable)
         {
-            MortalityEvolution.DataTable.Columns.Remove("MaxDate");
-            MortalityEvolution.DataTable.Columns.Remove("MinDate");
+            dataTable.Columns.Remove("MaxDate");
+            dataTable.Columns.Remove("MinDate");
         }
 
         public override void AdjustMinYearRegression(string countryCondition)
