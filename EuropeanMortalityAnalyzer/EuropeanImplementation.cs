@@ -3,6 +3,7 @@ using MortalityAnalyzer.Model;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -65,9 +66,9 @@ ORDER BY {1}";
         public override string GetCountryDisplayName()
         {
             if (!string.IsNullOrEmpty(Country))
-                return Country;
+                return new RegionInfo(Country).DisplayName;
             else if (Countries != null && Countries.Length > 0 && Countries.Length < 5)
-                return string.Join(" ", Countries);
+                return string.Join(" ", Countries.Select(c => new RegionInfo(c).DisplayName));
             else
                 return string.Empty;
         }
