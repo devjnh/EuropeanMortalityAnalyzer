@@ -38,14 +38,14 @@ class Program
         mortalityEvolution.MaxAge = 40;
         mortalityEvolution.MinYearRegression = 2014;
         mortalityEvolution.OutputFile = $"EuropeanMortality {mortalityEvolution.MinAge}-{mortalityEvolution.MaxAge}.xlsx";
-        string[] countries = new string[] { "FR", "ES", "IT" };
+        string[] countries = new string[] { "FR", "ES", "IT", "AT", "PT", "BE", "NL" };
         foreach (string country in countries)
         {
             ((EuropeanImplementation)mortalityEvolution.Implementation).Country = country;
             generationRoutine((MortalityEvolution)mortalityEvolution);
         }
         ((EuropeanImplementation)mortalityEvolution.Implementation).Country = null;
-        ((EuropeanImplementation)mortalityEvolution.Implementation).Countries = new string[] { "LU", "BE", "NL", "CH", "FR", "ES", "DK", "AT", "IT" };
+        ((EuropeanImplementation)mortalityEvolution.Implementation).Countries = new string[] { "LU", "BE", "NL", "CH", "FR", "ES", "DK", "AT", "IT", "PT" };
         generationRoutine((MortalityEvolution)mortalityEvolution);
     }
 
