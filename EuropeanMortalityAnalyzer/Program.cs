@@ -10,8 +10,10 @@ class Program
 {
     static int Main(string[] args)
     {
-        Build(new EuropeanMortalityEvolution(), GenerateMortality);
-        //Build(new EuropeanVaccinationEvolution(), GenerateVaccination);
+        Build(new EuropeanMortalityEvolution() { TimeMode = TimeMode.Quarter }, GenerateMortality);
+        //EuropeanVaccinationEvolution vaccinationEvolution = new EuropeanVaccinationEvolution();
+        //vaccinationEvolution.RollingPeriod = 8;
+        //Build(vaccinationEvolution, GenerateVaccination);
 
         return 0;
     }
@@ -33,10 +35,10 @@ class Program
             owidCovidVaxData.Extract(mortalityEvolution.Folder);
 
         mortalityEvolution.DatabaseEngine = databaseEngine;
-        mortalityEvolution.TimeMode = TimeMode.Quarter;
         mortalityEvolution.MinAge = 5;
         mortalityEvolution.MaxAge = 40;
         mortalityEvolution.MinYearRegression = 2014;
+        mortalityEvolution.Injections = VaxDose.SecondDose;
         mortalityEvolution.OutputFile = $"EuropeanMortality {mortalityEvolution.MinAge}-{mortalityEvolution.MaxAge}.xlsx";
         string[] countries = new string[] { "FR", "ES", "IT", "AT", "PT", "BE", "NL" };
         foreach (string country in countries)
