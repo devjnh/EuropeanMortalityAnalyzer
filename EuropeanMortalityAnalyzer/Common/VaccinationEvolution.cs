@@ -58,8 +58,8 @@ namespace MortalityAnalyzer
             SlidingWeeks.Columns.Add(TimeField, typeof(DateTime));
             SlidingWeeks.Columns.Add("Deaths", typeof(double));
             SlidingWeeks.Columns.Add("Injections", typeof(double));
-            WindowFilter deathsFilter = new BlackManFilter(Weeks);
-            WindowFilter injectionsFilter = new BlackManFilter(Weeks);
+            WindowFilter deathsFilter = new WindowFilter(Weeks);
+            WindowFilter injectionsFilter = new WindowFilter(Weeks);
             foreach (DataRow dataRow in deathStatistics.Rows)
             {
                 double deaths = deathsFilter.Filter((double)dataRow[1]);
