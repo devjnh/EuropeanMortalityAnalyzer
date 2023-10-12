@@ -10,45 +10,106 @@ class Program
 {
     static int Main(string[] args)
     {
-        Build(new EuropeanMortalityEvolution() { TimeMode = TimeMode.Quarter }, GenerateMortality);
-        //EuropeanVaccinationEvolution vaccinationEvolution = new EuropeanVaccinationEvolution();
-        //vaccinationEvolution.RollingPeriod = 8;
-        //Build(vaccinationEvolution, GenerateVaccination);
+        DatabaseEngine databaseEngine = Init();
+
+        GenerateAgeRange(databaseEngine, 5, 40);
+        GenerateAgeRange(databaseEngine, 5, 10, new DateTime(2021, 1, 1), new DateTime(2023, 7, 1));
 
         return 0;
     }
 
-    private static void Build(MortalityEvolution mortalityEvolution, Action<MortalityEvolution> generationRoutine)
+    private static void GenerateAgeRange(DatabaseEngine databaseEngine, int minAge, int maxAge, DateTime? zoomMinDate = null, DateTime? zoomMaxDate = null)
     {
-        if (!Directory.Exists(mortalityEvolution.Folder))
-            Directory.CreateDirectory(mortalityEvolution.Folder);
+        EuropeanMortalityEvolution mortalityEvolution = new EuropeanMortalityEvolution();
+        ConfigureCommon(mortalityEvolution, databaseEngine, minAge, maxAge);
+        //GenerateEvolution(mortalityEvolution, TimeMode.Year);
+        //GenerateEvolution(mortalityEvolution, TimeMode.DeltaYear);
+        GenerateEvolution(mortalityEvolution, TimeMode.Semester);
+        GenerateEvolution(mortalityEvolution, TimeMode.Quarter);
 
-        DatabaseEngine databaseEngine = GetDatabaseEngine(mortalityEvolution.Folder);
-        AgeStructure ageStructure = new AgeStructure { DatabaseEngine = databaseEngine };
-        ageStructure.Load(mortalityEvolution.Folder);
-        EuroStatWeekly euroStatWeekly = new EuroStatWeekly { DatabaseEngine = databaseEngine, AgeStructure = ageStructure };
-        if (!euroStatWeekly.IsBuilt)
-            euroStatWeekly.Extract(mortalityEvolution.Folder);
+        EuropeanVaccinationEvolution rollingEvolution = new EuropeanVaccinationEvolution();
+        if (zoomMinDate != null)
+            rollingEvolution.ZoomMinDate = zoomMinDate.Value;
+        if (zoomMaxDate != null)
+            rollingEvolution.ZoomMaxDate = zoomMaxDate.Value;
+        ConfigureCommon(rollingEvolution, databaseEngine, minAge, maxAge);
 
-        EcdcCovidVaxData owidCovidVaxData = new EcdcCovidVaxData { DatabaseEngine = databaseEngine };
-        if (!owidCovidVaxData.IsBuilt)
-            owidCovidVaxData.Extract(mortalityEvolution.Folder);
+        rollingEvolution.RollingPeriod = 8;
+        GenerateAllDoses(rollingEvolution);
 
+        //rollingEvolution.RollingPeriod = 4;
+        //GenerateAllDoses(rollingEvolution);
+    }
+
+    private static void ConfigureCommon(MortalityEvolution mortalityEvolution, DatabaseEngine databaseEngine, int minAge, int maxAge)
+    {
+        mortalityEvolution.MinAge = minAge;
+        mortalityEvolution.MaxAge = maxAge;
         mortalityEvolution.DatabaseEngine = databaseEngine;
-        mortalityEvolution.MinAge = 5;
-        mortalityEvolution.MaxAge = 40;
+    }
+
+    private static void GenerateEvolution(EuropeanMortalityEvolution mortalityEvolution, TimeMode timeMode)
+    {
+        mortalityEvolution.TimeMode = timeMode;
+        GenerateAllDoses(mortalityEvolution);
+    }
+
+    private static void GenerateAllDoses(MortalityEvolution mortalityEvolution)
+    {
+        foreach (VaxDose vaxDose in Enum.GetValues(typeof(VaxDose)))
+        {
+            if (vaxDose == VaxDose.None)
+                continue;
+            mortalityEvolution.Injections = vaxDose;
+            Build(mortalityEvolution);
+        }
+    }
+
+    private static void Build(MortalityEvolution mortalityEvolution)
+    {
         mortalityEvolution.MinYearRegression = 2014;
-        mortalityEvolution.Injections = VaxDose.SecondDose;
-        mortalityEvolution.OutputFile = $"EuropeanMortality {mortalityEvolution.MinAge}-{mortalityEvolution.MaxAge}.xlsx";
-        string[] countries = new string[] { "FR", "ES", "IT", "AT", "PT", "BE", "NL" };
+        mortalityEvolution.OutputFile = $"EuropeanMortality {mortalityEvolution.MinAge}-{mortalityEvolution.MaxAge}-{mortalityEvolution.TimeMode}-{mortalityEvolution.Injections}.xlsx";
+        string[] countries = new string[] { "FR", "ES", "IT" };
         foreach (string country in countries)
         {
             ((EuropeanImplementation)mortalityEvolution.Implementation).Country = country;
-            generationRoutine((MortalityEvolution)mortalityEvolution);
+            Generate(mortalityEvolution);
         }
         ((EuropeanImplementation)mortalityEvolution.Implementation).Country = null;
         ((EuropeanImplementation)mortalityEvolution.Implementation).Countries = new string[] { "LU", "BE", "NL", "CH", "FR", "ES", "DK", "AT", "IT", "PT" };
-        generationRoutine((MortalityEvolution)mortalityEvolution);
+        Generate(mortalityEvolution);
+    }
+
+    private static void Generate(MortalityEvolution mortalityEvolution)
+    {
+        if (mortalityEvolution is VaccinationEvolution)
+            GenerateVaccination(mortalityEvolution);
+        else
+            GenerateMortality(mortalityEvolution);
+    }
+
+    private static DatabaseEngine Init()
+    {
+        return Init(new EuropeanMortalityEvolution().Folder);
+    }
+
+    private static DatabaseEngine Init(string folder)
+    {
+        if (!Directory.Exists(folder))
+            Directory.CreateDirectory(folder);
+
+        DatabaseEngine databaseEngine = GetDatabaseEngine(folder);
+        AgeStructure ageStructure = new AgeStructure { DatabaseEngine = databaseEngine };
+        ageStructure.Load(folder);
+        EuroStatWeekly euroStatWeekly = new EuroStatWeekly { DatabaseEngine = databaseEngine, AgeStructure = ageStructure };
+        if (!euroStatWeekly.IsBuilt)
+            euroStatWeekly.Extract(folder);
+
+        EcdcCovidVaxData owidCovidVaxData = new EcdcCovidVaxData { DatabaseEngine = databaseEngine };
+        if (!owidCovidVaxData.IsBuilt)
+            owidCovidVaxData.Extract(folder);
+
+        return databaseEngine;
     }
 
     private static void GenerateMortality(MortalityEvolution mortalityEvolution)
