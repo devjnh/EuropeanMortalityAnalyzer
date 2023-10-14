@@ -44,9 +44,9 @@ namespace MortalityAnalyzer.Parser
             if (region != vaxStatistic.Country)
                 return null;
             vaxStatistic.Vaccine = GetValue("Vaccine", split);
-            vaxStatistic.FirstDose = GetIntValue("FirstDose", split);
-            vaxStatistic.SecondDose = GetIntValue("SecondDose", split);
-            vaxStatistic.ThirdDose = GetIntValue("DoseAdditional1", split);
+            vaxStatistic.D1 = GetIntValue("FirstDose", split);
+            vaxStatistic.D2 = GetIntValue("SecondDose", split);
+            vaxStatistic.D3 = GetIntValue("DoseAdditional1", split);
             vaxStatistic.Population = GetIntValue("Population", split);
             string ageGroup = GetValue("TargetGroup", split);
             Regex regexAge = new Regex("Age([0-9]+)_([0-9]+)");
