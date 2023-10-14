@@ -27,7 +27,7 @@ namespace MortalityAnalyzer.Parser
 
         protected override DataTable CreateDataTable()
         {
-            return DeathStatistic.CreateDataTable(GenderFilter.All);
+            return DatabaseEngine.CreateDataTable(typeof(DeathStatistic));
         }
 
         protected override IEntry GetEntry(string[] split)

@@ -26,7 +26,7 @@ namespace MortalityAnalyzer.Parser
 
         protected override DataTable CreateDataTable()
         {
-            return VaxStatistic.CreateDataTable();
+            return DatabaseEngine.CreateDataTable(typeof(VaxStatistic));
         }
 
         protected override IEntry GetEntry(string[] split)
