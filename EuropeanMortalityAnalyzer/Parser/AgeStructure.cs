@@ -1,4 +1,5 @@
-﻿using MortalityAnalyzer.Downloaders;
+﻿using MortalityAnalyzer.Common.Model;
+using MortalityAnalyzer.Downloaders;
 using MortalityAnalyzer.Model;
 using OfficeOpenXml;
 using System;
@@ -15,7 +16,7 @@ namespace MortalityAnalyzer
     class AgeStructure
     {
         static public int ReferenceYear { get; set; } = 2022;
-        public DataTable DataTable { get; private set; } = new DataTable { TableName = "AgeStructure" };
+        public DataTable DataTable { get; private set; }
         public DatabaseEngine DatabaseEngine { get; set; }
         const string SourceName = "demo_pjan";
 
@@ -23,18 +24,12 @@ namespace MortalityAnalyzer
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         }
-        public AgeStructure()
-        {
-            DataTable.Columns.Add("Year", typeof(int));
-            DataTable.Columns.Add("Age", typeof(int));
-            DataTable.Columns.Add("Population", typeof(int));
-            DataTable.Columns.Add("Gender", typeof(int));
-            DataTable.Columns.Add("Country", typeof(string));
-            DataTable.PrimaryKey = new DataColumn[] { DataTable.Columns[0], DataTable.Columns[1], DataTable.Columns[3], DataTable.Columns[4] };
-        }
 
         public void Load(string baseFolder)
         {
+            DataTable = DatabaseEngine.CreateDataTable(typeof(AgeStatistic), "AgeStructure");
+            DataTable.PrimaryKey = new DataColumn[] { DataTable.Columns[nameof(AgeStatistic.Year)], DataTable.Columns[nameof(AgeStatistic.Age)], DataTable.Columns[nameof(AgeStatistic.Gender)], DataTable.Columns[nameof(AgeStatistic.Country)] };
+
             Console.WriteLine($"Loading age structure");
             try
             {
@@ -51,6 +46,7 @@ namespace MortalityAnalyzer
             EuroStatDownloader euroStatDownloader = new EuroStatDownloader(baseFolder);
             euroStatDownloader.Download(SourceName);
             Console.WriteLine($"Extracting age structure");
+            DatabaseEngine.Prepare(DataTable);
 
             using (FileStream fileStream = new FileStream(Path.Combine(baseFolder, $"{SourceName}.csv"), FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
@@ -74,13 +70,13 @@ namespace MortalityAnalyzer
                         if (!result.Success)
                             continue;
                         GenderFilter gender = sex == "F" ? GenderFilter.Female : sex == "M" ? GenderFilter.Male : GenderFilter.All;
-                        DataRow row = DataTable.NewRow();
-                        row["Year"] = period;
-                        row["Age"] = Convert.ToInt32(result.Groups[1].Value);
-                        row["Population"] = String.IsNullOrWhiteSpace(count) ? 0 : Convert.ToInt32(count);
-                        row["Gender"] = (int)gender;
-                        row["Country"] = geo;
-                        DataTable.Rows.Add(row);
+                        AgeStatistic ageStatistic = new AgeStatistic();
+                        ageStatistic.Year = Convert.ToInt32(period);
+                        ageStatistic.Age = Convert.ToInt32(result.Groups[1].Value);
+                        ageStatistic.Population = String.IsNullOrWhiteSpace(count) ? 0 : Convert.ToInt32(count);
+                        ageStatistic.Gender = gender;
+                        ageStatistic.Country = geo;
+                        DatabaseEngine.Insert(ageStatistic);
                         //Regex regexWeek = new Regex("([0-9]{4})-W([0-9]{2})");
                         //var result = regexWeek.Match(period);
                         //if (!result.Success)
@@ -91,7 +87,7 @@ namespace MortalityAnalyzer
                     }
                 }
             }
-            DatabaseEngine.InsertTable(DataTable);
+            DatabaseEngine.FinishInsertion();
             Console.WriteLine($"Age structure inserted");
         }
 
