@@ -30,7 +30,7 @@ namespace MortalityAnalyzer.Parser
             return DatabaseEngine.CreateDataTable(typeof(DeathStatistic));
         }
 
-        protected override IEntry GetEntry(string[] split)
+        protected override object GetEntry(string[] split)
         {
             string age = split[3];
             string sex = split[4];

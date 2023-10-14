@@ -29,7 +29,7 @@ namespace MortalityAnalyzer.Parser
             return DatabaseEngine.CreateDataTable(typeof(VaxStatistic));
         }
 
-        protected override IEntry GetEntry(string[] split)
+        protected override object GetEntry(string[] split)
         {
             VaxStatistic vaxStatistic = new VaxStatistic();
             Regex regexWeek = new Regex("([0-9]{4})-W([0-9]{2})");
