@@ -99,9 +99,9 @@ class Program
             Directory.CreateDirectory(folder);
 
         DatabaseEngine databaseEngine = GetDatabaseEngine(folder);
-        AgeStructure ageStructure = new AgeStructure { DatabaseEngine = databaseEngine };
-        ageStructure.Load(folder);
-        EuroStatWeekly euroStatWeekly = new EuroStatWeekly { DatabaseEngine = databaseEngine, AgeStructure = ageStructure };
+        AgeStructureLoader ageStructureLoader = new AgeStructureLoader { DatabaseEngine = databaseEngine };
+        ageStructureLoader.Load(folder);
+        EuroStatWeekly euroStatWeekly = new EuroStatWeekly { DatabaseEngine = databaseEngine, AgeStructure = ageStructureLoader.AgeStructure };
         if (!euroStatWeekly.IsBuilt)
             euroStatWeekly.Extract(folder);
 

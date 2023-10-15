@@ -1,4 +1,5 @@
-﻿using MortalityAnalyzer.Common.Model;
+﻿using MortalityAnalyzer.Common;
+using MortalityAnalyzer.Common.Model;
 using MortalityAnalyzer.Downloaders;
 using MortalityAnalyzer.Model;
 using MortalityAnalyzer.Parser;
@@ -14,35 +15,23 @@ using System.Threading.Tasks;
 
 namespace MortalityAnalyzer
 {
-    class AgeStructure : CsvParser
+    class AgeStructureLoader : CsvParser
     {
-        static public int ReferenceYear { get; set; } = 2022;
         public DataTable DataTable { get; private set; }
         const string SourceName = "demo_pjan";
 
-        static AgeStructure()
-        {
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-        }
-
+        public AgeStructure AgeStructure { get; private set; }
         public void Load(string baseFolder)
         {
+            AgeStructure = new AgeStructure(DatabaseEngine, MaxAge);
             try
             {
-                LoadAgeStructure();
+                AgeStructure.LoadAgeStructure();
                 return;
             }
             catch { }
             Extract(baseFolder);
-            LoadAgeStructure();
-        }
-
-        private void LoadAgeStructure()
-        {
-            DataTable = CreateDataTable();
-            Console.WriteLine($"Loading age structure");
-            DatabaseEngine.FillDataTable("SELECT Year, Age, Population, Gender, Country FROM AgeStructure ORDER BY Year, Age", DataTable);
-            Console.WriteLine($"Age structure loaded");
+            AgeStructure.LoadAgeStructure();
         }
 
         private void Extract(string baseFolder)
@@ -77,27 +66,8 @@ namespace MortalityAnalyzer
 
             return ageStatistic;
         }
-        protected override DataTable CreateDataTable()
-        {
-            DataTable  dataTable = DatabaseEngine.CreateDataTable(typeof(AgeStatistic), "AgeStructure");
-            dataTable.PrimaryKey = new DataColumn[] { dataTable.Columns[nameof(AgeStatistic.Year)], dataTable.Columns[nameof(AgeStatistic.Age)], dataTable.Columns[nameof(AgeStatistic.Gender)], dataTable.Columns[nameof(AgeStatistic.Country)] };
-            return dataTable;
-        }
+        protected override DataTable CreateDataTable() => AgeStructure.CreateDataTable();
 
         public int MaxAge { get { return 100; } }
-
-        public int GetPopulation(int year, int age, string country, GenderFilter genderFilter = GenderFilter.All)
-        {
-            int ageLowerBound = age <= MaxAge ? age : MaxAge;
-            DataRow[] rows = DataTable.Select($"Year={year} AND Age={ageLowerBound} AND Gender={(int)genderFilter} AND Country = {country}");
-            return (int)rows[0][nameof(AgeStatistic.Population)];
-        }
-        public int GetPopulation(int year, int minAge, int maxAge, string country, GenderFilter genderFilter = GenderFilter.All)
-        {
-            if (year > 2022)
-                year = 2022;
-            DataRow[] rows = DataTable.Select($"Year={year} AND Age>={minAge}  AND Age<{maxAge} AND Gender={(int)genderFilter} AND Country = '{country}'");
-            return rows.Sum(r => (int)rows[0][nameof(AgeStatistic.Population)]);
-        }
     }
 }
