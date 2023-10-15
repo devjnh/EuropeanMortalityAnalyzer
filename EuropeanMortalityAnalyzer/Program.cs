@@ -82,10 +82,10 @@ class Program
 
     private static void Generate(MortalityEvolution mortalityEvolution)
     {
-        if (mortalityEvolution is RollingEvolution)
-            GenerateVaccination(mortalityEvolution);
-        else
-            GenerateMortality(mortalityEvolution);
+        mortalityEvolution.Generate();
+        BaseEvolutionView view = mortalityEvolution.TimeMode <= TimeMode.Quarter ? new MortalityEvolutionView() : new RollingEvolutionView();
+        view.MortalityEvolution = mortalityEvolution;
+        view.Save();
     }
 
     private static DatabaseEngine Init()
@@ -110,19 +110,6 @@ class Program
             owidCovidVaxData.Extract(folder);
 
         return databaseEngine;
-    }
-
-    private static void GenerateMortality(MortalityEvolution mortalityEvolution)
-    {
-        mortalityEvolution.Generate();
-        MortalityEvolutionView mortalityEvolutionView = new MortalityEvolutionView { MortalityEvolution = mortalityEvolution };
-        mortalityEvolutionView.Save();
-    }
-    private static void GenerateVaccination(MortalityEvolution mortalityEvolution)
-    {
-        mortalityEvolution.Generate();
-        RollingEvolutionView vaccinationEvolutionView = new RollingEvolutionView { MortalityEvolution = mortalityEvolution };
-        vaccinationEvolutionView.Save();
     }
 
     private static DatabaseEngine GetDatabaseEngine(string dataFolder)
