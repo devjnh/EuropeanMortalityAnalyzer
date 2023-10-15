@@ -42,11 +42,6 @@ ORDER BY {1}";
             return MortalityEvolution.GetPeriodLength(Convert.ToDateTime(dataRow[3]), Convert.ToDateTime(dataRow[4]).AddDays(7));
         }
 
-        public override string GetPopulationSqlQuery()
-        {
-            return $"SELECT SUM(Population) FROM AgeStructure WHERE Year = {AgeStructure.ReferenceYear} AND Gender = {(int)MortalityEvolution.GenderMode}";
-        }
-
         public string Country { get; set; }
         public string[] Countries { get; set; }
 
