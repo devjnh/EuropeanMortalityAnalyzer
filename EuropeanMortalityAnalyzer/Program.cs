@@ -27,7 +27,7 @@ class Program
         GenerateEvolution(mortalityEvolution, TimeMode.Semester);
         GenerateEvolution(mortalityEvolution, TimeMode.Quarter);
 
-        EuropeanVaccinationEvolution rollingEvolution = new EuropeanVaccinationEvolution();
+        EuropeanRollingEvolution rollingEvolution = new EuropeanRollingEvolution();
         if (zoomMinDate != null)
             rollingEvolution.ZoomMinDate = zoomMinDate.Value;
         if (zoomMaxDate != null)
@@ -82,7 +82,7 @@ class Program
 
     private static void Generate(MortalityEvolution mortalityEvolution)
     {
-        if (mortalityEvolution is VaccinationEvolution)
+        if (mortalityEvolution is RollingEvolution)
             GenerateVaccination(mortalityEvolution);
         else
             GenerateMortality(mortalityEvolution);
@@ -121,7 +121,7 @@ class Program
     private static void GenerateVaccination(MortalityEvolution mortalityEvolution)
     {
         mortalityEvolution.Generate();
-        VaccinationEvolutionView vaccinationEvolutionView = new VaccinationEvolutionView { MortalityEvolution = (VaccinationEvolution)mortalityEvolution };
+        RollingEvolutionView vaccinationEvolutionView = new RollingEvolutionView { MortalityEvolution = mortalityEvolution };
         vaccinationEvolutionView.Save();
     }
 
