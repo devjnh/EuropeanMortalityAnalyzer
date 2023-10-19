@@ -42,7 +42,11 @@ ORDER BY {1}";
             return MortalityEvolution.GetPeriodLength(Convert.ToDateTime(dataRow[3]), Convert.ToDateTime(dataRow[4]).AddDays(7));
         }
 
-        public string Country { get; set; }
+        public string Country
+        {
+            get => Countries.Length == 1 ? Countries[0] : "";
+            set => Countries = new string[] { value };
+        }
         public string[] Countries { get; set; }
 
         public override string GetCountryCondition()
@@ -61,7 +65,7 @@ ORDER BY {1}";
         public override string GetCountryDisplayName()
         {
             if (!string.IsNullOrEmpty(Country))
-                return new RegionInfo(Country).DisplayName;
+                return new RegionInfo(Country).EnglishName;
             else if (Countries != null && Countries.Length > 0 && Countries.Length < 5)
                 return string.Join(" ", Countries.Select(c => new RegionInfo(c).DisplayName));
             else
@@ -71,10 +75,7 @@ ORDER BY {1}";
         {
             if (!string.IsNullOrEmpty(Country))
                 return Country;
-            else if (Countries != null && Countries.Length > 0)
-                return Countries.Length < 5 ? string.Join("", Countries) : "Multi";
-            else
-                return string.Empty;
+            return string.Empty;
         }
     }
 }

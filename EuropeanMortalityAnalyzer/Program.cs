@@ -22,8 +22,8 @@ class Program
     {
         EuropeanMortalityEvolution mortalityEvolution = new EuropeanMortalityEvolution();
         ConfigureCommon(mortalityEvolution, databaseEngine, minAge, maxAge);
-        //GenerateEvolution(mortalityEvolution, TimeMode.Year);
-        //GenerateEvolution(mortalityEvolution, TimeMode.DeltaYear);
+        GenerateEvolution(mortalityEvolution, TimeMode.Year);
+        GenerateEvolution(mortalityEvolution, TimeMode.DeltaYear);
         GenerateEvolution(mortalityEvolution, TimeMode.Semester);
         GenerateEvolution(mortalityEvolution, TimeMode.Quarter);
 
@@ -37,8 +37,8 @@ class Program
         rollingEvolution.RollingPeriod = 8;
         GenerateAllDoses(rollingEvolution);
 
-        //rollingEvolution.RollingPeriod = 4;
-        //GenerateAllDoses(rollingEvolution);
+        rollingEvolution.RollingPeriod = 4;
+        GenerateAllDoses(rollingEvolution);
     }
 
     private static void ConfigureCommon(MortalityEvolution mortalityEvolution, DatabaseEngine databaseEngine, int minAge, int maxAge)
@@ -68,24 +68,30 @@ class Program
     private static void Build(MortalityEvolution mortalityEvolution)
     {
         mortalityEvolution.MinYearRegression = 2014;
-        mortalityEvolution.OutputFile = $"EuropeanMortality {mortalityEvolution.MinAge}-{mortalityEvolution.MaxAge}-{mortalityEvolution.TimeMode}-{mortalityEvolution.Injections}.xlsx";
         string[] countries = new string[] { "FR", "ES", "IT" };
         foreach (string country in countries)
         {
             ((EuropeanImplementation)mortalityEvolution.Implementation).Country = country;
             Generate(mortalityEvolution);
         }
-        ((EuropeanImplementation)mortalityEvolution.Implementation).Country = null;
         ((EuropeanImplementation)mortalityEvolution.Implementation).Countries = new string[] { "LU", "BE", "NL", "CH", "FR", "ES", "DK", "AT", "IT", "PT" };
         Generate(mortalityEvolution);
     }
 
     private static void Generate(MortalityEvolution mortalityEvolution)
     {
+        mortalityEvolution.OutputFile = $"{GetArea(mortalityEvolution)}-{mortalityEvolution.MinAge}-{mortalityEvolution.MaxAge}-{mortalityEvolution.Injections}.xlsx";
         mortalityEvolution.Generate();
+        if (mortalityEvolution.Injections != VaxDose.All && mortalityEvolution.MaxInjections == 0)
+            return;
         BaseEvolutionView view = mortalityEvolution.TimeMode <= TimeMode.Quarter ? new MortalityEvolutionView() : new RollingEvolutionView();
         view.MortalityEvolution = mortalityEvolution;
         view.Save();
+    }
+
+    private static string GetArea(MortalityEvolution mortalityEvolution)
+    {
+        return string.IsNullOrWhiteSpace(mortalityEvolution.CountryName) ? "Europe" : mortalityEvolution.CountryName;
     }
 
     private static DatabaseEngine Init()
