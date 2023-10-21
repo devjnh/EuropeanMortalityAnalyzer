@@ -35,14 +35,15 @@ class Program
         ConfigureCommon(rollingEvolution, databaseEngine, minAge, maxAge);
 
         rollingEvolution.RollingPeriod = 8;
-        GenerateAllDoses(rollingEvolution);
+        Build(rollingEvolution);
 
         rollingEvolution.RollingPeriod = 4;
-        GenerateAllDoses(rollingEvolution);
+        Build(rollingEvolution);
     }
 
     private static void ConfigureCommon(MortalityEvolution mortalityEvolution, DatabaseEngine databaseEngine, int minAge, int maxAge)
     {
+        mortalityEvolution.Injections = VaxDose.All;
         mortalityEvolution.MinAge = minAge;
         mortalityEvolution.MaxAge = maxAge;
         mortalityEvolution.DatabaseEngine = databaseEngine;
@@ -51,19 +52,9 @@ class Program
     private static void GenerateEvolution(EuropeanMortalityEvolution mortalityEvolution, TimeMode timeMode)
     {
         mortalityEvolution.TimeMode = timeMode;
-        GenerateAllDoses(mortalityEvolution);
+        Build(mortalityEvolution);
     }
 
-    private static void GenerateAllDoses(MortalityEvolution mortalityEvolution)
-    {
-        foreach (VaxDose vaxDose in Enum.GetValues(typeof(VaxDose)))
-        {
-            if (vaxDose == VaxDose.None)
-                continue;
-            mortalityEvolution.Injections = vaxDose;
-            Build(mortalityEvolution);
-        }
-    }
 
     private static void Build(MortalityEvolution mortalityEvolution)
     {
@@ -80,10 +71,8 @@ class Program
 
     private static void Generate(MortalityEvolution mortalityEvolution)
     {
-        mortalityEvolution.OutputFile = $"{GetArea(mortalityEvolution)}-{mortalityEvolution.MinAge}-{mortalityEvolution.MaxAge}-{mortalityEvolution.Injections}.xlsx";
+        mortalityEvolution.OutputFile = $"{GetArea(mortalityEvolution)} {mortalityEvolution.MinAge}-{mortalityEvolution.MaxAge}.xlsx";
         mortalityEvolution.Generate();
-        if (mortalityEvolution.Injections != VaxDose.All && mortalityEvolution.MaxInjections == 0)
-            return;
         BaseEvolutionView view = mortalityEvolution.TimeMode <= TimeMode.Quarter ? new MortalityEvolutionView() : new RollingEvolutionView();
         view.MortalityEvolution = mortalityEvolution;
         view.Save();
