@@ -78,6 +78,6 @@ namespace MortalityAnalyzer.Parser
 
             return null;
         }
-        public bool IsBuilt => DatabaseEngine.DoesTableExist(VaxStatistic.StatisticsTableName);
+        public bool IsBuilt => DatabaseEngine.DoesTableExist(typeof(VaxStatistic));
     }
 }

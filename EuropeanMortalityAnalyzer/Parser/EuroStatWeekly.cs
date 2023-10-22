@@ -67,6 +67,6 @@ namespace MortalityAnalyzer.Parser
             return deathStatistic;
         }
 
-        public bool IsBuilt => DatabaseEngine.DoesTableExist(DeathStatistic.StatisticsTableName);
+        public bool IsBuilt => DatabaseEngine.DoesTableExist(typeof(DeathStatistic));
     }
 }

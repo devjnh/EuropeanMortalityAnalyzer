@@ -29,7 +29,7 @@ ORDER BY {1}";
 
         public override void AdjustMinYearRegression(string countryCondition)
         {
-            DateTime firstDay = Convert.ToDateTime(MortalityEvolution.DatabaseEngine.GetValue($"SELECT MAX(MinDate) FROM (SELECT MIN(DATE) AS MinDate FROM {DeathStatistic.StatisticsTableName} WHERE {countryCondition} GROUP BY Country)")).AddDays(-MortalityEvolution.ToDateDelay);
+            DateTime firstDay = Convert.ToDateTime(MortalityEvolution.DatabaseEngine.GetValue($"SELECT MAX(MinDate) FROM (SELECT MIN(DATE) AS MinDate FROM {DatabaseEngine.GetTableName(typeof(DeathStatistic))} WHERE {countryCondition} GROUP BY Country)")).AddDays(-MortalityEvolution.ToDateDelay);
             int minYear = firstDay.Year + 1;
             if (MortalityEvolution.MinYearRegression > minYear)
                 minYear = MortalityEvolution.MinYearRegression;
