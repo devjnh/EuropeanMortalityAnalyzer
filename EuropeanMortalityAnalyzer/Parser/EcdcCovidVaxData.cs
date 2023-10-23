@@ -39,6 +39,7 @@ namespace MortalityAnalyzer.Parser
             int year = Convert.ToInt32(result.Groups[1].Value);
             int week = Convert.ToInt32(result.Groups[2].Value);
             vaxStatistic.Date = FirstDateOfWeekISO8601(year, week);
+            vaxStatistic.Gender = GenderFilter.All;
             vaxStatistic.Country = GetValue("ReportingCountry", split);
             string region = GetValue("Region", split);
             if (region != vaxStatistic.Country)

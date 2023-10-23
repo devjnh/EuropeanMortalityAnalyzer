@@ -12,7 +12,8 @@ namespace MortalityAnalyzer
 {
     public class EuropeanImplementation : SpecificImplementation
     {
-        protected const string Query_Years = @"SELECT {1}, SUM(DeathStatistics{2}.StandardizedDeaths) AS Standardized, SUM(DeathStatistics{2}.Deaths) AS Raw, MIN(Date) AS MinDate, MAX(Date) AS MaxDate FROM DeathStatistics{2}{0}
+        protected const string Query_Years = @"SELECT {1}, SUM(StandardizedDeaths) AS Standardized, SUM(Deaths) AS Raw, MIN(Date) AS MinDate, MAX(Date) AS MaxDate FROM DeathStatistics
+{0}
 GROUP BY {1}
 ORDER BY {1}";
 

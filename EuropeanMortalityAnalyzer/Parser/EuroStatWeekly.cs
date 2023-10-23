@@ -57,6 +57,7 @@ namespace MortalityAnalyzer.Parser
             DeathStatistic deathStatistic = new DeathStatistic();
             deathStatistic.Age = minAge;
             deathStatistic.AgeSpan = maxAge + 1 - minAge;
+            deathStatistic.Gender = GenderFilter.All;
             deathStatistic.Country = geo;
             deathStatistic.Date = weekDate.AddDays(3); // Use the date of the thursday (middle of the week)
             deathStatistic.Deaths = deaths;
