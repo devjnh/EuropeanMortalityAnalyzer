@@ -43,7 +43,7 @@ class Program
 
     private static void ConfigureCommon(MortalityEvolution mortalityEvolution, DatabaseEngine databaseEngine, int minAge, int maxAge)
     {
-        mortalityEvolution.Injections = VaxDose.All;
+        mortalityEvolution.DisplayInjections = true;
         mortalityEvolution.MinAge = minAge;
         mortalityEvolution.MaxAge = maxAge;
         mortalityEvolution.DatabaseEngine = databaseEngine;
