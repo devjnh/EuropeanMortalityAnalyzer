@@ -14,8 +14,8 @@ namespace MortalityAnalyzer
     {
         protected const string Query_Years = @"SELECT {1}, SUM(StandardizedDeaths) AS Standardized, SUM(Deaths) AS Raw, MIN(Date) AS MinDate, MAX(Date) AS MaxDate FROM DeathStatistics
 {0}
-GROUP BY {1}
-ORDER BY {1}";
+GROUP BY {2}
+ORDER BY {2}";
 
         public override string GetQueryTemplate()
         {

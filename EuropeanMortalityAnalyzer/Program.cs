@@ -26,6 +26,7 @@ class Program
         GenerateEvolution(mortalityEvolution, TimeMode.DeltaYear);
         GenerateEvolution(mortalityEvolution, TimeMode.Semester);
         GenerateEvolution(mortalityEvolution, TimeMode.Quarter);
+        GenerateEvolution(mortalityEvolution, TimeMode.Month);
 
         EuropeanRollingEvolution rollingEvolution = new EuropeanRollingEvolution();
         if (zoomMinDate != null)
@@ -73,7 +74,7 @@ class Program
     {
         mortalityEvolution.OutputFile = $"{GetArea(mortalityEvolution)} {mortalityEvolution.MinAge}-{mortalityEvolution.MaxAge}.xlsx";
         mortalityEvolution.Generate();
-        BaseEvolutionView view = mortalityEvolution.TimeMode <= TimeMode.Quarter ? new MortalityEvolutionView() : new RollingEvolutionView();
+        BaseEvolutionView view = mortalityEvolution.TimeMode <= TimeMode.Month ? new MortalityEvolutionView() : new RollingEvolutionView();
         view.MortalityEvolution = mortalityEvolution;
         view.Save();
     }
