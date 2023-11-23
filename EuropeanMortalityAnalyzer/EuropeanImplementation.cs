@@ -66,7 +66,14 @@ ORDER BY {2}";
         public override string GetCountryDisplayName()
         {
             if (!string.IsNullOrEmpty(Country))
-                return new RegionInfo(Country).EnglishName;
+                try
+                {
+                    return new RegionInfo(Country).EnglishName;
+                }
+                catch
+                {
+                    return Country == "EL" ? "Greece" : Country;
+                }
             else if (Countries != null && Countries.Length > 0 && Countries.Length < 5)
                 return string.Join(" ", Countries.Select(c => new RegionInfo(c).DisplayName));
             else
