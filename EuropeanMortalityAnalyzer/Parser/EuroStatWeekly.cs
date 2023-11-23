@@ -47,16 +47,40 @@ namespace MortalityAnalyzer.Parser
             int year = Convert.ToInt32(result.Groups[1].Value);
             int week = Convert.ToInt32(result.Groups[2].Value);
             DateTime weekDate = FirstDateOfWeekISO8601(year, week);
+            int minAge;
+            int maxAge;
             Regex regexAge = new Regex("Y([0-9]+)-([0-9]+)");
             result = regexAge.Match(age);
-            if (!result.Success)
-                return null;
-            int minAge = Convert.ToInt32(result.Groups[1].Value);
-            int maxAge = Convert.ToInt32(result.Groups[2].Value);
+            if (result.Success)
+            {
+                minAge = Convert.ToInt32(result.Groups[1].Value);
+                maxAge = Convert.ToInt32(result.Groups[2].Value);
+            }
+            else
+            {
+                regexAge = new Regex("Y_(GE|LT)([0-9]+)");
+                result = regexAge.Match(age);
+                if (result.Success)
+                {
+                    if (result.Groups[1].Value == "LT")
+                    {
+                        maxAge = Convert.ToInt32(result.Groups[2].Value) - 1;
+                        minAge = 0;
+                    }
+                    else
+                    {
+
+                        minAge = Convert.ToInt32(result.Groups[2].Value);
+                        maxAge = -1;
+                    }
+                }
+                else
+                    return null;
+            }
             int deaths = string.IsNullOrWhiteSpace(count) ? 0 : Convert.ToInt32(count);
             DeathStatistic deathStatistic = new DeathStatistic();
             deathStatistic.Age = minAge;
-            deathStatistic.AgeSpan = maxAge + 1 - minAge;
+            deathStatistic.AgeSpan = maxAge == -1 ? -1 : maxAge + 1 - minAge;
             deathStatistic.Gender = GetGender(sex);
             deathStatistic.Country = geo;
             deathStatistic.Date = weekDate.AddDays(3); // Use the date of the thursday (middle of the week)
