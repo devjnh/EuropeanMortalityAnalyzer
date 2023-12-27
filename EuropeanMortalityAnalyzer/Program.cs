@@ -4,6 +4,7 @@ using MortalityAnalyzer.Downloaders;
 using MortalityAnalyzer.Parser;
 using MortalityAnalyzer.Views;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 class Program
@@ -59,20 +60,26 @@ class Program
 
     private static void Build(MortalityEvolution mortalityEvolution)
     {
-        mortalityEvolution.MinYearRegression = 2014;
-        string[] countries = new string[] { "FR", "ES", "IT" };
+        IEnumerable<string> countries = new EuropeanMortalityHelper(mortalityEvolution).GetSupportedCountries();
         foreach (string country in countries)
         {
             ((EuropeanImplementation)mortalityEvolution.Implementation).Country = country;
             Generate(mortalityEvolution);
         }
+        ((EuropeanImplementation)mortalityEvolution.Implementation).Countries = new string[] { "SK", "RO", "PO", "HU", "CZ", "BG" };
+        Generate(mortalityEvolution, "East");
+        ((EuropeanImplementation)mortalityEvolution.Implementation).Countries = new string[] { "FI", "NO", "SE", "DK", };
+        Generate(mortalityEvolution, "North");
+        ((EuropeanImplementation)mortalityEvolution.Implementation).Countries = new string[] { "LU", "BE", "NL", "CH", "AT", "PT" };
+        Generate(mortalityEvolution, "Other");
         ((EuropeanImplementation)mortalityEvolution.Implementation).Countries = new string[] { "LU", "BE", "NL", "CH", "FR", "ES", "DK", "AT", "IT", "PT" };
         Generate(mortalityEvolution);
     }
 
-    private static void Generate(MortalityEvolution mortalityEvolution)
+    private static void Generate(MortalityEvolution mortalityEvolution, string area = null)
     {
-        mortalityEvolution.OutputFile = $"{GetArea(mortalityEvolution)} {mortalityEvolution.MinAge}-{mortalityEvolution.MaxAge}.xlsx";
+        mortalityEvolution.MinYearRegression = 2012;
+        mortalityEvolution.OutputFile = $"{area ?? GetArea(mortalityEvolution)} {mortalityEvolution.MinAge}-{mortalityEvolution.MaxAge}.xlsx";
         mortalityEvolution.Generate();
         BaseEvolutionView view = mortalityEvolution.TimeMode <= TimeMode.Month ? new MortalityEvolutionView() : new RollingEvolutionView();
         view.MortalityEvolution = mortalityEvolution;
