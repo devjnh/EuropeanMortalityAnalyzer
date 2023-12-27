@@ -49,6 +49,7 @@ ORDER BY {2}";
             set => Countries = new string[] { value };
         }
         public string[] Countries { get; set; }
+        public string Area { get; set; } = null;
 
         public override string GetCountryCondition()
         {
@@ -74,6 +75,8 @@ ORDER BY {2}";
                 {
                     return Country == "EL" ? "Greece" : Country;
                 }
+            else if (Area != null)
+                return Area;
             else if (Countries != null && Countries.Length > 0 && Countries.Length < 5)
                 return string.Join(" ", Countries.Select(c => new RegionInfo(c).DisplayName));
             else

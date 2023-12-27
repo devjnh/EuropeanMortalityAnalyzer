@@ -60,26 +60,34 @@ class Program
 
     private static void Build(MortalityEvolution mortalityEvolution)
     {
+        EuropeanImplementation europeanImplementation = ((EuropeanImplementation)mortalityEvolution.Implementation);
+
         IEnumerable<string> countries = new EuropeanMortalityHelper(mortalityEvolution).GetSupportedCountries();
+        //string[] countries = new string[] { "FR" };
         foreach (string country in countries)
         {
-            ((EuropeanImplementation)mortalityEvolution.Implementation).Country = country;
+            europeanImplementation.Country = country;
+            europeanImplementation.Area = null;
             Generate(mortalityEvolution);
         }
-        ((EuropeanImplementation)mortalityEvolution.Implementation).Countries = new string[] { "SK", "RO", "PO", "HU", "CZ", "BG" };
-        Generate(mortalityEvolution, "East");
-        ((EuropeanImplementation)mortalityEvolution.Implementation).Countries = new string[] { "FI", "NO", "SE", "DK", };
-        Generate(mortalityEvolution, "North");
-        ((EuropeanImplementation)mortalityEvolution.Implementation).Countries = new string[] { "LU", "BE", "NL", "CH", "AT", "PT" };
-        Generate(mortalityEvolution, "Other");
-        ((EuropeanImplementation)mortalityEvolution.Implementation).Countries = new string[] { "LU", "BE", "NL", "CH", "FR", "ES", "DK", "AT", "IT", "PT" };
+        europeanImplementation.Countries = new string[] { "SK", "RO", "PO", "HU", "CZ", "BG" };
+        europeanImplementation.Area = "Europe - East";
+        Generate(mortalityEvolution);
+        europeanImplementation.Countries = new string[] { "FI", "NO", "SE", "DK", };
+        europeanImplementation.Area = "Europe - North";
+        Generate(mortalityEvolution);
+        europeanImplementation.Countries = new string[] { "LU", "BE", "NL", "CH", "AT", "PT" };
+        europeanImplementation.Area = "Europe - Other";
+        Generate(mortalityEvolution);
+        europeanImplementation.Countries = new string[] { "LU", "BE", "NL", "CH", "FR", "ES", "DK", "AT", "IT", "PT" };
+        europeanImplementation.Area = "Europe - West";
         Generate(mortalityEvolution);
     }
 
-    private static void Generate(MortalityEvolution mortalityEvolution, string area = null)
+    private static void Generate(MortalityEvolution mortalityEvolution)
     {
         mortalityEvolution.MinYearRegression = 2012;
-        mortalityEvolution.OutputFile = $"{area ?? GetArea(mortalityEvolution)} {mortalityEvolution.MinAge}-{mortalityEvolution.MaxAge}.xlsx";
+        mortalityEvolution.OutputFile = $"{GetArea(mortalityEvolution)} {mortalityEvolution.MinAge}-{mortalityEvolution.MaxAge}.xlsx";
         mortalityEvolution.Generate();
         BaseEvolutionView view = mortalityEvolution.TimeMode <= TimeMode.Month ? new MortalityEvolutionView() : new RollingEvolutionView();
         view.MortalityEvolution = mortalityEvolution;
