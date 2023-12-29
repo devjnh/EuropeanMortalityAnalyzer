@@ -14,15 +14,17 @@ class Program
         DatabaseEngine databaseEngine = Init();
 
         GenerateAgeRange(databaseEngine, 5, 40);
-        GenerateAgeRange(databaseEngine, 5, 10, new DateTime(2021, 1, 1), new DateTime(2023, 7, 1));
+        GenerateAgeRange(databaseEngine, 5, 10, new DateTime(2021, 1, 1), new DateTime(2023, 7, 1), new DateTime(2022, 1, 1));
 
         return 0;
     }
 
-    private static void GenerateAgeRange(DatabaseEngine databaseEngine, int minAge, int maxAge, DateTime? zoomMinDate = null, DateTime? zoomMaxDate = null)
+    private static void GenerateAgeRange(DatabaseEngine databaseEngine, int minAge, int maxAge, DateTime? zoomMinDate = null, DateTime? zoomMaxDate = null, DateTime? excessSince = null)
     {
         EuropeanMortalityEvolution mortalityEvolution = new EuropeanMortalityEvolution();
         ConfigureCommon(mortalityEvolution, databaseEngine, minAge, maxAge);
+        if (excessSince != null)
+            mortalityEvolution.ExcessSince = excessSince.Value;
         GenerateEvolution(mortalityEvolution, TimeMode.Year);
         GenerateEvolution(mortalityEvolution, TimeMode.DeltaYear);
         GenerateEvolution(mortalityEvolution, TimeMode.Semester);
