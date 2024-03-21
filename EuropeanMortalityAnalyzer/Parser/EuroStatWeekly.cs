@@ -15,6 +15,7 @@ namespace MortalityAnalyzer.Parser
 {
     internal class EuroStatWeekly : CsvParser
     {
+        public GenderFilter GenderFilter { get; set; } = GenderFilter.All;
         public AgeStructure AgeStructure { get; set; }
         public bool FilesInserted { get; set; } = false;
         const string SourceName = "demo_r_mwk_05";
@@ -39,6 +40,9 @@ namespace MortalityAnalyzer.Parser
             string period = split[7];
             string count = split[8];
             if (age == "TOTAL" || age == "UNK")
+                return null;
+            GenderFilter gender = GetGender(sex);
+            if (gender != GenderFilter)
                 return null;
             Regex regexWeek = new Regex("([0-9]{4})-W([0-9]{2})");
             var result = regexWeek.Match(period);
@@ -81,7 +85,7 @@ namespace MortalityAnalyzer.Parser
             DeathStatistic deathStatistic = new DeathStatistic();
             deathStatistic.Age = minAge;
             deathStatistic.AgeSpan = maxAge == -1 ? -1 : maxAge + 1 - minAge;
-            deathStatistic.Gender = GetGender(sex);
+            deathStatistic.Gender = gender;
             deathStatistic.Country = geo;
             deathStatistic.Date = weekDate.AddDays(3); // Use the date of the thursday (middle of the week)
             deathStatistic.Deaths = deaths;
