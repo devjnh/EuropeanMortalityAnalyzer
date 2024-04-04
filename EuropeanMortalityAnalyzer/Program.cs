@@ -1,94 +1,94 @@
 ﻿// See https://aka.ms/new-console-template for more information
+using CommandLine;
 using MortalityAnalyzer;
+using MortalityAnalyzer.Common;
 using MortalityAnalyzer.Downloaders;
 using MortalityAnalyzer.Parser;
 using MortalityAnalyzer.Views;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 class Program
 {
     static int Main(string[] args)
     {
+        if (args.Length > 0)
+            return Parser.Default.ParseArguments<MortalityEvolutionOptions, InitOptions, ShowOptions>(args)
+                .MapResult(
+                  (MortalityEvolutionOptions opts) => MortalityEvolution(opts),
+                  (InitOptions opts) => Init(opts),
+                  (ShowOptions opts) => Show(opts),
+                  errs => 1);
+
         DatabaseEngine databaseEngine = Init();
 
-        GenerateAgeRange(databaseEngine, 5, 40);
-        GenerateAgeRange(databaseEngine, 5, 10, new DateTime(2021, 1, 1), new DateTime(2023, 7, 1), new DateTime(2022, 1, 1));
+        const int minAge = 10;
+        const int maxAge = 40;
+        MortalityEvolutionOptions mortalityEvolution = new MortalityEvolutionOptions { MinAge = minAge, MaxAge = maxAge, DisplayInjections = true, ToDateDelay = 50 };
+        GenerateCountries(databaseEngine, mortalityEvolution, "Europe - West",  new string[] { "LU", "BE", "NL", "CH", "FR", "ES", "DK", "AT", "IT", "PT" });
+        GenerateCountries(databaseEngine, mortalityEvolution, "Europe - East",  new string[] { "SK", "RO", "PO", "HU", "CZ", "BG" });
+        GenerateCountries(databaseEngine, mortalityEvolution, "Europe - North", new string[] { "FI", "NO", "SE", "DK", });
+        MortalityEvolution engine = mortalityEvolution.GetEvolutionEngine();
+        engine.DatabaseEngine = databaseEngine;
+        IEnumerable<string> countries = new EuropeanMortalityHelper(engine).GetSupportedCountries();
+        //string[] countries = new string[] { "FR", "ES", "IT" };
+        foreach (string country in countries)
+            GenerateCountry(databaseEngine, mortalityEvolution, country);
 
         return 0;
     }
 
-    private static void GenerateAgeRange(DatabaseEngine databaseEngine, int minAge, int maxAge, DateTime? zoomMinDate = null, DateTime? zoomMaxDate = null, DateTime? excessSince = null)
+    private static void GenerateCountry(DatabaseEngine databaseEngine, MortalityEvolutionOptions mortalityEvolution, string country)
     {
-        EuropeanMortalityEvolution mortalityEvolution = new EuropeanMortalityEvolution();
-        ConfigureCommon(mortalityEvolution, databaseEngine, minAge, maxAge);
-        if (excessSince != null)
-            mortalityEvolution.ExcessSince = excessSince.Value;
-        GenerateEvolution(mortalityEvolution, TimeMode.Year);
-        GenerateEvolution(mortalityEvolution, TimeMode.DeltaYear);
-        GenerateEvolution(mortalityEvolution, TimeMode.Semester);
-        GenerateEvolution(mortalityEvolution, TimeMode.Quarter);
-        GenerateEvolution(mortalityEvolution, TimeMode.Month);
-
-        EuropeanRollingEvolution rollingEvolution = new EuropeanRollingEvolution();
-        if (zoomMinDate != null)
-            rollingEvolution.ZoomMinDate = zoomMinDate.Value;
-        if (zoomMaxDate != null)
-            rollingEvolution.ZoomMaxDate = zoomMaxDate.Value;
-        ConfigureCommon(rollingEvolution, databaseEngine, minAge, maxAge);
-
-        rollingEvolution.RollingPeriod = 8;
-        Build(rollingEvolution);
-
-        rollingEvolution.RollingPeriod = 4;
-        Build(rollingEvolution);
+        mortalityEvolution.Countries = new string[] { country };
+        mortalityEvolution.Area = "";
+        GenerateAllTimeModes(databaseEngine, mortalityEvolution);
+    }
+    private static void GenerateCountries(DatabaseEngine databaseEngine, MortalityEvolutionOptions mortalityEvolution, string area, string[] countries)
+    {
+        mortalityEvolution.Countries = countries;
+        mortalityEvolution.Area = area;
+        GenerateAllTimeModes(databaseEngine, mortalityEvolution);
     }
 
-    private static void ConfigureCommon(MortalityEvolution mortalityEvolution, DatabaseEngine databaseEngine, int minAge, int maxAge)
+    //static void GenerateCountry(DatabaseEngine databaseEngine, string country, int minAge, int maxAge, DateTime? zoomMinDate = null, DateTime? zoomMaxDate = null, DateTime? excessSince = null)
+    //{
+    //    GenerateCountries(databaseEngine, new string[] { country }, null, minAge, maxAge, zoomMinDate, zoomMaxDate, excessSince);
+    //}
+
+    static void GenerateAllTimeModes(DatabaseEngine databaseEngine, MortalityEvolutionOptions mortalityEvolution)
     {
-        mortalityEvolution.DisplayInjections = true;
-        mortalityEvolution.MinAge = minAge;
-        mortalityEvolution.MaxAge = maxAge;
-        mortalityEvolution.DatabaseEngine = databaseEngine;
+        GenerateTimeMode(databaseEngine, mortalityEvolution, TimeMode.Year);
+        GenerateTimeMode(databaseEngine, mortalityEvolution, TimeMode.DeltaYear);
+        GenerateTimeMode(databaseEngine, mortalityEvolution, TimeMode.Semester);
+        GenerateTimeMode(databaseEngine, mortalityEvolution, TimeMode.Quarter);
+        GenerateTimeMode(databaseEngine, mortalityEvolution, TimeMode.Month);
+        GenerateTimeMode(databaseEngine, mortalityEvolution, TimeMode.Week, 8);
+        GenerateTimeMode(databaseEngine, mortalityEvolution, TimeMode.Week, 4);
     }
 
-    private static void GenerateEvolution(EuropeanMortalityEvolution mortalityEvolution, TimeMode timeMode)
+    private static void GenerateTimeMode(DatabaseEngine databaseEngine, MortalityEvolutionOptions mortalityEvolution, TimeMode timeMode, int rollingPeriod = 7)
     {
         mortalityEvolution.TimeMode = timeMode;
-        Build(mortalityEvolution);
+        mortalityEvolution.RollingPeriod = rollingPeriod;
+        MortalityEvolution engine = mortalityEvolution.GetEvolutionEngine();
+        engine.DatabaseEngine = databaseEngine;
+        Generate(engine);
     }
 
-
-    private static void Build(MortalityEvolution mortalityEvolution)
+    private static void GenerateTimeMode(EuropeanMortalityEvolution mortalityEvolution, TimeMode timeMode)
     {
-        EuropeanImplementation europeanImplementation = ((EuropeanImplementation)mortalityEvolution.Implementation);
-
-        IEnumerable<string> countries = new EuropeanMortalityHelper(mortalityEvolution).GetSupportedCountries();
-        //string[] countries = new string[] { "FR" };
-        foreach (string country in countries)
-        {
-            europeanImplementation.Country = country;
-            europeanImplementation.Area = null;
-            Generate(mortalityEvolution);
-        }
-        europeanImplementation.Countries = new string[] { "SK", "RO", "PO", "HU", "CZ", "BG" };
-        europeanImplementation.Area = "Europe - East";
-        Generate(mortalityEvolution);
-        europeanImplementation.Countries = new string[] { "FI", "NO", "SE", "DK", };
-        europeanImplementation.Area = "Europe - North";
-        Generate(mortalityEvolution);
-        europeanImplementation.Countries = new string[] { "LU", "BE", "NL", "CH", "AT", "PT" };
-        europeanImplementation.Area = "Europe - Other";
-        Generate(mortalityEvolution);
-        europeanImplementation.Countries = new string[] { "LU", "BE", "NL", "CH", "FR", "ES", "DK", "AT", "IT", "PT" };
-        europeanImplementation.Area = "Europe - West";
+        mortalityEvolution.TimeMode = timeMode;
         Generate(mortalityEvolution);
     }
 
     private static void Generate(MortalityEvolution mortalityEvolution)
     {
-        mortalityEvolution.MinYearRegression = 2012;
+        //mortalityEvolution.MinYearRegression = 2012;
+        //mortalityEvolution.ToDateDelay = 50;
         mortalityEvolution.OutputFile = $"{GetArea(mortalityEvolution)} {mortalityEvolution.MinAge}-{mortalityEvolution.MaxAge}.xlsx";
         mortalityEvolution.Generate();
         BaseEvolutionView view = mortalityEvolution.TimeMode <= TimeMode.Month ? new MortalityEvolutionView() : new RollingEvolutionView();
@@ -103,7 +103,17 @@ class Program
 
     private static DatabaseEngine Init()
     {
-        return Init(new EuropeanMortalityEvolution().Folder);
+        return InitCore(new EuropeanMortalityEvolution());
+    }
+
+    private static DatabaseEngine InitCore(Options europeanMortalityEvolution)
+    {
+        return Init(europeanMortalityEvolution.Folder);
+    }
+    private static int Init(Options europeanMortalityEvolution)
+    {
+        InitCore(europeanMortalityEvolution);
+        return 0;
     }
 
     private static DatabaseEngine Init(string folder)
@@ -125,12 +135,30 @@ class Program
         return databaseEngine;
     }
 
+    static int MortalityEvolution(MortalityEvolutionOptions mortalityEvolutionOptions)
+    {
+        DatabaseEngine databaseEngine = InitCore(mortalityEvolutionOptions);
+        GenerateAllTimeModes(databaseEngine, mortalityEvolutionOptions);
+        if (mortalityEvolutionOptions.Show)
+            Show(mortalityEvolutionOptions);
+        return 0;
+    }
+
     private static DatabaseEngine GetDatabaseEngine(string dataFolder)
     {
         string databaseFile = Path.Combine(dataFolder, "EuropeanMortality.db");
         DatabaseEngine databaseEngine = new DatabaseEngine($"data source={databaseFile}", System.Data.SQLite.SQLiteFactory.Instance);
         databaseEngine.Connect();
         return databaseEngine;
+    }
+    private static int Show(Options initOptions)
+    {
+        string filePath = Path.Combine(initOptions.Folder, initOptions.OutputFile);
+        if (File.Exists(filePath))
+            Process.Start(new ProcessStartInfo(filePath) { UseShellExecute = true });
+        else
+            Console.WriteLine("The file was not found!");
+        return 0;
     }
 }
 
