@@ -17,30 +17,33 @@ namespace MortalityAnalyzer
     public class ShowOptions : Options
     {
     }
-    [Verb("evolution", HelpText = "European mortality evolution")]
-    public class MortalityEvolutionOptions : MortalityEvolutionBase
+    [Verb("allcountries", HelpText = "Mortality evolution for countries listed in EuroStat")]
+    public class AllCountriesEvolutionOptions : MortalityEvolutionBase
+    {
+    }
+    [Verb("countries", HelpText = "Mortality evolution for several countries")]
+    public class CountriesEvolutionOptions : MortalityEvolutionBase
     {
         [Option("Countries", Required = false, HelpText = "List of european countries to include.")]
         public IEnumerable<string> Countries { get; set; }
         [Option("Area", Required = false, HelpText = "Display name of the area.")]
         public string Area { get; set; }
-
-        public MortalityEvolution GetEvolutionEngine()
+    }
+    [Verb("area", HelpText = "Mortality evolution for a group of countries")]
+    public class MortalityEvolutionOptions : CountriesEvolutionOptions
+    {
+        public MortalityEvolution GetEvolutionEngine(TimeMode timeMode, int rollingPeriod)
         {
-            MortalityEvolution mortalityEvolution = IsNormalMode ? new EuropeanMortalityEvolution() : new EuropeanRollingEvolution();
+            MortalityEvolution mortalityEvolution = timeMode <= TimeMode.Month ? new EuropeanMortalityEvolution() : new EuropeanRollingEvolution();
             CopyTo(mortalityEvolution);
+            mortalityEvolution.TimeMode = timeMode;
+            mortalityEvolution.RollingPeriod = rollingPeriod;
             EuropeanImplementation europeanImplementation = ((EuropeanImplementation)mortalityEvolution.Implementation);
             europeanImplementation.Countries = Countries.ToArray();
             europeanImplementation.Area = Area;
 
             return mortalityEvolution;
         }
-
-        private bool IsNormalMode => TimeMode <= TimeMode.Month;
-
-        internal BaseEvolutionView GetView()
-        {
-            return IsNormalMode ? new MortalityEvolutionView() : new RollingEvolutionView();
-        }
     }
+
 }

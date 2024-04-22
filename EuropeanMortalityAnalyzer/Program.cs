@@ -16,9 +16,11 @@ class Program
     static int Main(string[] args)
     {
         if (args.Length > 0)
-            return Parser.Default.ParseArguments<MortalityEvolutionOptions, InitOptions, ShowOptions>(args)
+            return Parser.Default.ParseArguments<MortalityEvolutionOptions, CountriesEvolutionOptions, AllCountriesEvolutionOptions, InitOptions, ShowOptions>(args)
                 .MapResult(
                   (MortalityEvolutionOptions opts) => MortalityEvolution(opts),
+                  (CountriesEvolutionOptions opts) => CountriesMortalityEvolution(opts),
+                  (AllCountriesEvolutionOptions opts) => AllCountriesMortalityEvolution(opts),
                   (InitOptions opts) => Init(opts),
                   (ShowOptions opts) => Show(opts),
                   errs => 1);
@@ -31,9 +33,7 @@ class Program
         GenerateCountries(databaseEngine, mortalityEvolution, "Europe - West",  new string[] { "LU", "BE", "NL", "CH", "FR", "ES", "DK", "AT", "IT", "PT" });
         GenerateCountries(databaseEngine, mortalityEvolution, "Europe - East",  new string[] { "SK", "RO", "PO", "HU", "CZ", "BG" });
         GenerateCountries(databaseEngine, mortalityEvolution, "Europe - North", new string[] { "FI", "NO", "SE", "DK", });
-        MortalityEvolution engine = mortalityEvolution.GetEvolutionEngine();
-        engine.DatabaseEngine = databaseEngine;
-        IEnumerable<string> countries = new EuropeanMortalityHelper(engine).GetSupportedCountries();
+        IEnumerable<string> countries = new EuropeanMortalityHelper(mortalityEvolution, databaseEngine).GetSupportedCountries();
         //string[] countries = new string[] { "FR", "ES", "IT" };
         foreach (string country in countries)
             GenerateCountry(databaseEngine, mortalityEvolution, country);
@@ -72,17 +72,9 @@ class Program
 
     private static void GenerateTimeMode(DatabaseEngine databaseEngine, MortalityEvolutionOptions mortalityEvolution, TimeMode timeMode, int rollingPeriod = 7)
     {
-        mortalityEvolution.TimeMode = timeMode;
-        mortalityEvolution.RollingPeriod = rollingPeriod;
-        MortalityEvolution engine = mortalityEvolution.GetEvolutionEngine();
+        MortalityEvolution engine = mortalityEvolution.GetEvolutionEngine(timeMode, rollingPeriod);
         engine.DatabaseEngine = databaseEngine;
         Generate(engine);
-    }
-
-    private static void GenerateTimeMode(EuropeanMortalityEvolution mortalityEvolution, TimeMode timeMode)
-    {
-        mortalityEvolution.TimeMode = timeMode;
-        Generate(mortalityEvolution);
     }
 
     private static void Generate(MortalityEvolution mortalityEvolution)
@@ -138,10 +130,41 @@ class Program
     static int MortalityEvolution(MortalityEvolutionOptions mortalityEvolutionOptions)
     {
         DatabaseEngine databaseEngine = InitCore(mortalityEvolutionOptions);
+        MortalityEvolution(mortalityEvolutionOptions, databaseEngine);
+        return 0;
+    }
+
+    static void MortalityEvolution(MortalityEvolutionOptions mortalityEvolutionOptions, DatabaseEngine databaseEngine)
+    {
         GenerateAllTimeModes(databaseEngine, mortalityEvolutionOptions);
         if (mortalityEvolutionOptions.Show)
             Show(mortalityEvolutionOptions);
+    }
+
+    static int CountriesMortalityEvolution(CountriesEvolutionOptions mortalityEvolutionOptions)
+    {
+        DatabaseEngine databaseEngine = InitCore(mortalityEvolutionOptions);
+        CountriesMortalityEvolution(mortalityEvolutionOptions, mortalityEvolutionOptions.Countries, databaseEngine);
         return 0;
+    }
+    static int AllCountriesMortalityEvolution(AllCountriesEvolutionOptions mortalityEvolutionOptions)
+    {
+        DatabaseEngine databaseEngine = InitCore(mortalityEvolutionOptions);
+        IEnumerable<string> countries = new EuropeanMortalityHelper(mortalityEvolutionOptions, databaseEngine).GetSupportedCountries();
+
+        CountriesMortalityEvolution(mortalityEvolutionOptions, countries, databaseEngine);
+        return 0;
+    }
+
+    private static void CountriesMortalityEvolution(MortalityEvolutionBase mortalityEvolutionOptions, IEnumerable<string> countries, DatabaseEngine databaseEngine)
+    {
+        foreach (string country in countries)
+        {
+            MortalityEvolutionOptions countryEvolutionOptions = new MortalityEvolutionOptions();
+            mortalityEvolutionOptions.CopyTo(countryEvolutionOptions);
+            countryEvolutionOptions.Countries = new string[] { country };
+            MortalityEvolution(countryEvolutionOptions, databaseEngine);
+        }
     }
 
     private static DatabaseEngine GetDatabaseEngine(string dataFolder)

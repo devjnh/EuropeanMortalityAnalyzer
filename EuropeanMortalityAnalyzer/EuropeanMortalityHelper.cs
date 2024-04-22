@@ -9,9 +9,9 @@ namespace MortalityAnalyzer
 {
     public class EuropeanMortalityHelper : EuropeanMortalityEvolution
     {
-        public EuropeanMortalityHelper(MortalityEvolution mortalityEvolution)
+        internal EuropeanMortalityHelper(MortalityEvolutionBase mortalityEvolution, DatabaseEngine databaseEngine)
         {
-            DatabaseEngine = mortalityEvolution.DatabaseEngine;
+            DatabaseEngine = databaseEngine;
             mortalityEvolution.CopyTo(this);
         }
         protected override string GetCountryCondition()
