@@ -29,14 +29,13 @@ class Program
 
         const int minAge = 10;
         const int maxAge = 40;
-        MortalityEvolutionOptions mortalityEvolution = new MortalityEvolutionOptions { MinAge = minAge, MaxAge = maxAge, DisplayInjections = true, ToDateDelay = 50 };
-        GenerateCountries(databaseEngine, mortalityEvolution, "Europe - West",  new string[] { "LU", "BE", "NL", "CH", "FR", "ES", "DK", "AT", "IT", "PT" });
-        GenerateCountries(databaseEngine, mortalityEvolution, "Europe - East",  new string[] { "SK", "RO", "PO", "HU", "CZ", "BG" });
-        GenerateCountries(databaseEngine, mortalityEvolution, "Europe - North", new string[] { "FI", "NO", "SE", "DK", });
-        IEnumerable<string> countries = new EuropeanMortalityHelper(mortalityEvolution, databaseEngine).GetSupportedCountries();
-        //string[] countries = new string[] { "FR", "ES", "IT" };
-        foreach (string country in countries)
-            GenerateCountry(databaseEngine, mortalityEvolution, country);
+        MortalityEvolutionOptions mortalityEvolution = new MortalityEvolutionOptions { DisplayInjections = true, ToDateDelay = 50 };
+        string[] countries = new string[] { "LU", "BE", "NL", "CH", "FR", "ES", "DK", "AT", "IT", "PT" };
+        const string Area = "Europe - West";
+        GenerateCountries(databaseEngine, mortalityEvolution, Area, countries);
+        mortalityEvolution.MinAge = minAge;
+        mortalityEvolution.MaxAge = maxAge;
+        GenerateCountries(databaseEngine, mortalityEvolution, Area, countries);
 
         return 0;
     }
@@ -81,7 +80,14 @@ class Program
     {
         //mortalityEvolution.MinYearRegression = 2012;
         //mortalityEvolution.ToDateDelay = 50;
-        mortalityEvolution.OutputFile = $"{GetArea(mortalityEvolution)} {mortalityEvolution.MinAge}-{mortalityEvolution.MaxAge}.xlsx";
+        if (mortalityEvolution.MinAge <0 && mortalityEvolution.MaxAge < 0)
+            mortalityEvolution.OutputFile = $"{GetArea(mortalityEvolution)}.xlsx";
+        else if (mortalityEvolution.MaxAge < 0)
+            mortalityEvolution.OutputFile = $"{GetArea(mortalityEvolution)} {mortalityEvolution.MinAge}+.xlsx";
+        else if (mortalityEvolution.MinAge < 0)
+            mortalityEvolution.OutputFile = $"{GetArea(mortalityEvolution)} {mortalityEvolution.MaxAge}-.xlsx";
+        else
+            mortalityEvolution.OutputFile = $"{GetArea(mortalityEvolution)} {mortalityEvolution.MinAge}-{mortalityEvolution.MaxAge}.xlsx";
         mortalityEvolution.Generate();
         BaseEvolutionView view = mortalityEvolution.TimeMode <= TimeMode.Month ? new MortalityEvolutionView() : new RollingEvolutionView();
         view.MortalityEvolution = mortalityEvolution;
