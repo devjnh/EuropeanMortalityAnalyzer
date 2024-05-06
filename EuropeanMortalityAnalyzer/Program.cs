@@ -89,7 +89,7 @@ class Program
         else
             mortalityEvolution.OutputFile = $"{GetArea(mortalityEvolution)} {mortalityEvolution.MinAge}-{mortalityEvolution.MaxAge}.xlsx";
         mortalityEvolution.Generate();
-        BaseEvolutionView view = mortalityEvolution.TimeMode <= TimeMode.Month ? new MortalityEvolutionView() : new RollingEvolutionView();
+        BaseEvolutionView view = mortalityEvolution.TimeMode <= TimeMode.Month ? new EuropeanEvolutionView() : new EuropeanRollingEvolutionView();
         view.MortalityEvolution = mortalityEvolution;
         view.Save();
     }

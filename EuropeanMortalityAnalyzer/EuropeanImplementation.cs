@@ -67,14 +67,7 @@ ORDER BY {2}";
         public override string GetCountryDisplayName()
         {
             if (!string.IsNullOrEmpty(Country))
-                try
-                {
-                    return new RegionInfo(Country).EnglishName;
-                }
-                catch
-                {
-                    return Country == "EL" ? "Greece" : Country;
-                }
+                return GetCountryDisplayName(Country);
             else if (Area != null)
                 return Area;
             else if (Countries != null && Countries.Length > 0 && Countries.Length < 5)
@@ -82,6 +75,14 @@ ORDER BY {2}";
             else
                 return string.Empty;
         }
+
+        static public string GetCountryDisplayName(string country)
+        {
+            if (country == "EL")
+                country = "GR";
+            return new RegionInfo(country).EnglishName;
+        }
+
         public override string GetCountryInternalName()
         {
             if (!string.IsNullOrEmpty(Country))
