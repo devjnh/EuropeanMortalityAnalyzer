@@ -20,9 +20,9 @@ namespace MortalityAnalyzer.Views
             if (countries.Length <= 1)
                 return;
             int iRow = workSheet.Dimension.End.Row + 4;
-            DisplayField(workSheet, iRow++, "Country", "Code");
+            DisplayInfo(workSheet, _DataColumn, iRow++, "Included countries");
             foreach (string country in countries)
-                DisplayField(workSheet, iRow++, EuropeanImplementation.GetCountryDisplayName(country), country);
+                DisplayInfo(workSheet, _DataColumn, iRow++, EuropeanImplementation.GetCountryDisplayName(country), false);
         }
     }
 }
