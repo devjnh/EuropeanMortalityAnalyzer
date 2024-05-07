@@ -33,9 +33,11 @@ class Program
         string[] countries = new string[] { "LU", "BE", "NL", "CH", "FR", "ES", "DK", "AT", "IT", "PT" };
         const string Area = "Europe - West";
         GenerateCountries(databaseEngine, mortalityEvolution, Area, countries);
+        Show(mortalityEvolution);
         mortalityEvolution.MinAge = minAge;
         mortalityEvolution.MaxAge = maxAge;
         GenerateCountries(databaseEngine, mortalityEvolution, Area, countries);
+        Show(mortalityEvolution);
 
         return 0;
     }
@@ -60,6 +62,14 @@ class Program
 
     static void GenerateAllTimeModes(DatabaseEngine databaseEngine, MortalityEvolutionOptions mortalityEvolution)
     {
+        if (mortalityEvolution.MinAge < 0 && mortalityEvolution.MaxAge < 0)
+            mortalityEvolution.OutputFile = $"{mortalityEvolution.EffectiveArea}.xlsx";
+        else if (mortalityEvolution.MaxAge < 0)
+            mortalityEvolution.OutputFile = $"{mortalityEvolution.EffectiveArea} {mortalityEvolution.MinAge}+.xlsx";
+        else if (mortalityEvolution.MinAge < 0)
+            mortalityEvolution.OutputFile = $"{mortalityEvolution.EffectiveArea} {mortalityEvolution.MaxAge}-.xlsx";
+        else
+            mortalityEvolution.OutputFile = $"{mortalityEvolution.EffectiveArea} {mortalityEvolution.MinAge}-{mortalityEvolution.MaxAge}.xlsx";
         GenerateTimeMode(databaseEngine, mortalityEvolution, TimeMode.Year);
         GenerateTimeMode(databaseEngine, mortalityEvolution, TimeMode.DeltaYear);
         GenerateTimeMode(databaseEngine, mortalityEvolution, TimeMode.Semester);
@@ -80,23 +90,10 @@ class Program
     {
         //mortalityEvolution.MinYearRegression = 2012;
         //mortalityEvolution.ToDateDelay = 50;
-        if (mortalityEvolution.MinAge <0 && mortalityEvolution.MaxAge < 0)
-            mortalityEvolution.OutputFile = $"{GetArea(mortalityEvolution)}.xlsx";
-        else if (mortalityEvolution.MaxAge < 0)
-            mortalityEvolution.OutputFile = $"{GetArea(mortalityEvolution)} {mortalityEvolution.MinAge}+.xlsx";
-        else if (mortalityEvolution.MinAge < 0)
-            mortalityEvolution.OutputFile = $"{GetArea(mortalityEvolution)} {mortalityEvolution.MaxAge}-.xlsx";
-        else
-            mortalityEvolution.OutputFile = $"{GetArea(mortalityEvolution)} {mortalityEvolution.MinAge}-{mortalityEvolution.MaxAge}.xlsx";
         mortalityEvolution.Generate();
         BaseEvolutionView view = mortalityEvolution.TimeMode <= TimeMode.Month ? new EuropeanEvolutionView() : new EuropeanRollingEvolutionView();
         view.MortalityEvolution = mortalityEvolution;
         view.Save();
-    }
-
-    private static string GetArea(MortalityEvolution mortalityEvolution)
-    {
-        return string.IsNullOrWhiteSpace(mortalityEvolution.CountryName) ? "Europe" : mortalityEvolution.CountryName;
     }
 
     private static DatabaseEngine Init()

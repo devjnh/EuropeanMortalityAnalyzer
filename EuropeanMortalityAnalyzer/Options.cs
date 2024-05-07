@@ -28,6 +28,11 @@ namespace MortalityAnalyzer
         public IEnumerable<string> Countries { get; set; }
         [Option("Area", Required = false, HelpText = "Display name of the area.")]
         public string Area { get; set; }
+        public string EffectiveArea
+        {
+            get { return Countries.Count() == 1 ? EuropeanImplementation.GetCountryDisplayName(Countries.First()) : Area; }
+        }
+        
     }
     [Verb("area", HelpText = "Mortality evolution for a group of countries")]
     public class MortalityEvolutionOptions : CountriesEvolutionOptions
