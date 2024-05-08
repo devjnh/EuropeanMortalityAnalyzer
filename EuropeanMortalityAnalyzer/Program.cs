@@ -55,11 +55,6 @@ class Program
         GenerateAllTimeModes(databaseEngine, mortalityEvolution);
     }
 
-    //static void GenerateCountry(DatabaseEngine databaseEngine, string country, int minAge, int maxAge, DateTime? zoomMinDate = null, DateTime? zoomMaxDate = null, DateTime? excessSince = null)
-    //{
-    //    GenerateCountries(databaseEngine, new string[] { country }, null, minAge, maxAge, zoomMinDate, zoomMaxDate, excessSince);
-    //}
-
     static void GenerateAllTimeModes(DatabaseEngine databaseEngine, MortalityEvolutionOptions mortalityEvolution)
     {
         GenerateTimeMode(databaseEngine, mortalityEvolution, TimeMode.Year);
@@ -80,8 +75,6 @@ class Program
 
     private static void Generate(MortalityEvolution mortalityEvolution)
     {
-        //mortalityEvolution.MinYearRegression = 2012;
-        //mortalityEvolution.ToDateDelay = 50;
         mortalityEvolution.Generate();
         BaseEvolutionView view = mortalityEvolution.TimeMode <= TimeMode.Month ? new EuropeanEvolutionView() : new EuropeanRollingEvolutionView();
         view.MortalityEvolution = mortalityEvolution;
