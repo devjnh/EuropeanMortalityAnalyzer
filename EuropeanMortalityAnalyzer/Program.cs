@@ -102,15 +102,17 @@ class Program
             Directory.CreateDirectory(folder);
 
         DatabaseEngine databaseEngine = GetDatabaseEngine(folder);
+
         AgeStructureLoader ageStructureLoader = new AgeStructureLoader { DatabaseEngine = databaseEngine, Progress = ConsoleProgress.Instance };
         ageStructureLoader.Load(folder);
-        EuroStatWeekly euroStatWeekly = new EuroStatWeekly { DatabaseEngine = databaseEngine, AgeStructure = ageStructureLoader.AgeStructure, Progress = ConsoleProgress.Instance };
-        if (!euroStatWeekly.IsBuilt)
-            euroStatWeekly.Extract(folder);
 
         EcdcCovidVaxData owidCovidVaxData = new EcdcCovidVaxData { DatabaseEngine = databaseEngine, Progress = ConsoleProgress.Instance };
         if (!owidCovidVaxData.IsBuilt)
             owidCovidVaxData.Extract(folder);
+
+        EuroStatWeekly euroStatWeekly = new EuroStatWeekly { DatabaseEngine = databaseEngine, AgeStructure = ageStructureLoader.AgeStructure, Progress = ConsoleProgress.Instance };
+        if (!euroStatWeekly.IsBuilt)
+            euroStatWeekly.Extract(folder);
 
         return databaseEngine;
     }
