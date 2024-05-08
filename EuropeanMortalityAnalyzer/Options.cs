@@ -24,6 +24,10 @@ namespace MortalityAnalyzer
     [Verb("countries", HelpText = "Mortality evolution for several countries")]
     public class CountriesEvolutionOptions : MortalityEvolutionBase
     {
+        public CountriesEvolutionOptions()
+        {
+            OutputFile = null;
+        }
         [Option("Countries", Required = false, HelpText = "List of european countries to include.")]
         public IEnumerable<string> Countries { get; set; }
         [Option("Area", Required = false, HelpText = "Display name of the area.")]
@@ -32,7 +36,22 @@ namespace MortalityAnalyzer
         {
             get { return Countries.Count() == 1 ? EuropeanImplementation.GetCountryDisplayName(Countries.First()) : Area; }
         }
-        
+        override public string ActualOutputFile {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(base.OutputFile))
+                    return base.OutputFile;
+                if (MinAge < 0 && MaxAge < 0)
+                    return $"{EffectiveArea}.xlsx";
+                else if (MaxAge < 0)
+                    return $"{EffectiveArea} {MinAge}+.xlsx";
+                else if (MinAge < 0)
+                    return $"{EffectiveArea} {MaxAge}-.xlsx";
+                else
+                    return $"{EffectiveArea} {MinAge}-{MaxAge}.xlsx";
+            }
+        }
+
     }
     [Verb("area", HelpText = "Mortality evolution for a group of countries")]
     public class MortalityEvolutionOptions : CountriesEvolutionOptions
@@ -41,6 +60,7 @@ namespace MortalityAnalyzer
         {
             MortalityEvolution mortalityEvolution = timeMode <= TimeMode.Month ? new EuropeanMortalityEvolution() : new EuropeanRollingEvolution();
             CopyTo(mortalityEvolution);
+            mortalityEvolution.OutputFile = ActualOutputFile;
             mortalityEvolution.TimeMode = timeMode;
             mortalityEvolution.RollingPeriod = rollingPeriod;
             EuropeanImplementation europeanImplementation = ((EuropeanImplementation)mortalityEvolution.Implementation);

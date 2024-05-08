@@ -62,14 +62,6 @@ class Program
 
     static void GenerateAllTimeModes(DatabaseEngine databaseEngine, MortalityEvolutionOptions mortalityEvolution)
     {
-        if (mortalityEvolution.MinAge < 0 && mortalityEvolution.MaxAge < 0)
-            mortalityEvolution.OutputFile = $"{mortalityEvolution.EffectiveArea}.xlsx";
-        else if (mortalityEvolution.MaxAge < 0)
-            mortalityEvolution.OutputFile = $"{mortalityEvolution.EffectiveArea} {mortalityEvolution.MinAge}+.xlsx";
-        else if (mortalityEvolution.MinAge < 0)
-            mortalityEvolution.OutputFile = $"{mortalityEvolution.EffectiveArea} {mortalityEvolution.MaxAge}-.xlsx";
-        else
-            mortalityEvolution.OutputFile = $"{mortalityEvolution.EffectiveArea} {mortalityEvolution.MinAge}-{mortalityEvolution.MaxAge}.xlsx";
         GenerateTimeMode(databaseEngine, mortalityEvolution, TimeMode.Year);
         GenerateTimeMode(databaseEngine, mortalityEvolution, TimeMode.DeltaYear);
         GenerateTimeMode(databaseEngine, mortalityEvolution, TimeMode.Semester);
@@ -179,7 +171,7 @@ class Program
     }
     private static int Show(Options initOptions)
     {
-        string filePath = Path.Combine(initOptions.Folder, initOptions.OutputFile);
+        string filePath = Path.Combine(initOptions.Folder, initOptions.ActualOutputFile);
         if (File.Exists(filePath))
             Process.Start(new ProcessStartInfo(filePath) { UseShellExecute = true });
         else
