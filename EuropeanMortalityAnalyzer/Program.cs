@@ -101,20 +101,41 @@ class Program
         if (!Directory.Exists(folder))
             Directory.CreateDirectory(folder);
 
+        string sourceFolder = Path.Combine(folder, "Source");
+        if (Directory.Exists(sourceFolder) && DateTime.Now - Directory.GetCreationTime(sourceFolder) > TimeSpan.FromDays(30))
+            ArchiveOldData(folder, sourceFolder);
+        if (!Directory.Exists(sourceFolder))
+            Directory.CreateDirectory(sourceFolder);
+
+
         DatabaseEngine databaseEngine = GetDatabaseEngine(folder);
 
         AgeStructureLoader ageStructureLoader = new AgeStructureLoader { DatabaseEngine = databaseEngine, Progress = ConsoleProgress.Instance };
-        ageStructureLoader.Load(folder);
+        ageStructureLoader.Load(sourceFolder);
 
         EcdcCovidVaxData owidCovidVaxData = new EcdcCovidVaxData { DatabaseEngine = databaseEngine, Progress = ConsoleProgress.Instance };
         if (!owidCovidVaxData.IsBuilt)
-            owidCovidVaxData.Extract(folder);
+            owidCovidVaxData.Extract(sourceFolder);
 
         EuroStatWeekly euroStatWeekly = new EuroStatWeekly { DatabaseEngine = databaseEngine, AgeStructure = ageStructureLoader.AgeStructure, Progress = ConsoleProgress.Instance };
         if (!euroStatWeekly.IsBuilt)
-            euroStatWeekly.Extract(folder);
+            euroStatWeekly.Extract(sourceFolder);
 
         return databaseEngine;
+    }
+
+    private static void ArchiveOldData(string folder, string sourceFolder)
+    {
+        string oldSourceFolder = $"{sourceFolder}.old";
+        if (Directory.Exists(oldSourceFolder))
+            Directory.Delete(oldSourceFolder, true);
+        Directory.Move(sourceFolder, oldSourceFolder);
+    
+        string databaseFile = GetDatabaseFile(folder);
+        string oldDatabaseFile = Path.Combine(Path.GetDirectoryName(databaseFile), Path.GetFileNameWithoutExtension(databaseFile) + ".old" + Path.GetExtension(databaseFile));
+        if (File.Exists(oldDatabaseFile))
+            File.Delete(oldDatabaseFile);
+        File.Move(databaseFile, oldDatabaseFile);
     }
 
     static int MortalityEvolution(MortalityEvolutionOptions mortalityEvolutionOptions)
@@ -159,11 +180,17 @@ class Program
 
     private static DatabaseEngine GetDatabaseEngine(string dataFolder)
     {
-        string databaseFile = Path.Combine(dataFolder, "EuropeanMortality.db");
+        string databaseFile = GetDatabaseFile(dataFolder);
         DatabaseEngine databaseEngine = new DatabaseEngine($"data source={databaseFile}", System.Data.SQLite.SQLiteFactory.Instance);
         databaseEngine.Connect();
         return databaseEngine;
     }
+
+    private static string GetDatabaseFile(string dataFolder)
+    {
+        return Path.Combine(dataFolder, "EuropeanMortality.db");
+    }
+
     private static int Show(Options initOptions)
     {
         string filePath = Path.Combine(initOptions.Folder, initOptions.ActualOutputFile);
