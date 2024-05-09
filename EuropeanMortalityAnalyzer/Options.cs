@@ -30,13 +30,18 @@ namespace MortalityAnalyzer
         }
         [Option("Countries", Required = false, HelpText = "List of european countries to include.")]
         public IEnumerable<string> Countries { get; set; }
+    }
+    [Verb("area", HelpText = "Mortality evolution for a group of countries")]
+    public class MortalityEvolutionOptions : CountriesEvolutionOptions
+    {
         [Option("Area", Required = false, HelpText = "Display name of the area.")]
         public string Area { get; set; }
         public string EffectiveArea
         {
             get { return Countries.Count() == 1 ? EuropeanImplementation.GetCountryDisplayName(Countries.First()) : Area; }
         }
-        override public string ActualOutputFile {
+        override public string ActualOutputFile
+        {
             get
             {
                 if (!string.IsNullOrWhiteSpace(base.OutputFile))
@@ -52,10 +57,6 @@ namespace MortalityAnalyzer
             }
         }
 
-    }
-    [Verb("area", HelpText = "Mortality evolution for a group of countries")]
-    public class MortalityEvolutionOptions : CountriesEvolutionOptions
-    {
         public MortalityEvolution GetEvolutionEngine(TimeMode timeMode, int rollingPeriod)
         {
             MortalityEvolution mortalityEvolution = timeMode <= TimeMode.Month ? new EuropeanMortalityEvolution() : new EuropeanRollingEvolution();
