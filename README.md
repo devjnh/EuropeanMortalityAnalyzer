@@ -7,24 +7,25 @@ Extract all files in the zip file in a new folder. You can then launch the the e
 The first execution will automatically:
 
 - Create in the working folder a subfolder named *Data* were all the files will be stored
-- Download the mortality statistics from EuroStat
-- Download the age structure statistics also from EuroStat
-- Download the Covid vaccination statistics from the ECDC web site. 
+- Download the mortality statistics from [EuroStat](https://ec.europa.eu/eurostat/databrowser/view/DEMO_R_MWK_05/default/table?lang=en&category=demo.demomwk "Deaths by week, sex and 5-year age group")
+- Download the age structure statistics also from [EuroStat](https://ec.europa.eu/eurostat/databrowser/view/demo_pjan/default/table?lang=en "Population on 1 January by age and sex")
+- Download the Covid vaccination statistics from the [ECDC web site](https://www.ecdc.europa.eu/en/publications-data/data-covid-19-vaccination-eu-eea "Data on COVID-19 vaccination in the EU/EEA"). 
 - Insert all the statistics in a SQLite database named *EuropeanMortality.db*
 - Calculate weekly death statistics by 5 years age interval standardized according to the age structure
 
 The first execution will take some time to download and insert all the data in the database and then build the death statistics. So, you need to be patient.
 
 Then at every execution, the program will generate some MS Excel spreadsheet depending on the command line.
-By default the following files are generated:  
+By default the following files are generated:
+  
 - *Europe - West.xlsx* Mortality of countries of west europa
 - *Europe - West 10-40.xlsx* Mortality of countries of west Europa for the age of 10 years to 40 years excluded.
 
 Here is what the example batch file looks like :
 
-    .EuropeanMortalityAnalyzer.exe countries -–country FR ES IT
-    .EuropeanMortalityAnalyzer.exe countries -–country FR ES IT --MinAge 5 --MaxAge 40 
-    .EuropeanMortalityAnalyzer.exe area -–area FR ES IT –area “France Italy Spain” --MinAge 5 --MaxAge 40
+    EuropeanMortalityAnalyzer.exe countries -–country FR ES IT
+    EuropeanMortalityAnalyzer.exe countries -–country FR ES IT --MinAge 5 --MaxAge 40 
+    EuropeanMortalityAnalyzer.exe area -–area FR ES IT –area “France Italy Spain” --MinAge 5 --MaxAge 40
 The batch file will generate the following files:
 France.xls Mortality of France
   
