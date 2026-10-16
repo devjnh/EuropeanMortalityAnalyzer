@@ -1,50 +1,115 @@
 # EuropeanMortalityAnalyzer
-This program allows to generate statistics with European mortality statistics published by EuroStat.
+
+EuropeanMortalityAnalyzer builds mortality statistics for European countries from the weekly death counts published by EuroStat. It generates Excel spreadsheets with charts showing:
+
+- Age-standardized deaths by year, July–June year, semester, quarter, month and week (rolling average)
+- A baseline projection computed by regression over a reference period (2012–2020 by default)
+- Excess mortality relative to that baseline, its distribution, and the corresponding Z-score
+- Optionally, Covid-19 vaccine injections alongside the mortality curves
+
+Results can be filtered by country or group of countries, by age range and by gender.
+
+## Data sources
+
+On first run the program downloads:
+
+- Weekly deaths by sex and 5-year age group from [EuroStat (demo_r_mwk_05)](https://ec.europa.eu/eurostat/databrowser/view/DEMO_R_MWK_05/default/table?lang=en&category=demo.demomwk "Deaths by week, sex and 5-year age group")
+- Population on 1 January by age and sex from [EuroStat (demo_pjan)](https://ec.europa.eu/eurostat/databrowser/view/demo_pjan/default/table?lang=en "Population on 1 January by age and sex")
+- Covid-19 vaccination data from the [ECDC](https://www.ecdc.europa.eu/en/publications-data/data-covid-19-vaccination-eu-eea "Data on COVID-19 vaccination in the EU/EEA")
+
+Deaths are standardized according to the age structure of each country, using 2022 as the reference year, so that periods with different population sizes and age pyramids can be compared.
+
 ## How to use the executable
-You can download the already built executable for Windows with the following link:  
-[Download EuropeanMortality.zip](https://github.com/devjnh/EuropeanMortalityAnalyzer/releases/latest/download/EuropeanMortality.zip)  
-Extract all files in the zip file in a new folder. You can then launch the the executable EuropeanMortalityAnalyzer.exe.
-The first execution will automatically:
 
-- Create in the working folder a subfolder named *Data* were all the files will be stored
-- Download the mortality statistics from [EuroStat](https://ec.europa.eu/eurostat/databrowser/view/DEMO_R_MWK_05/default/table?lang=en&category=demo.demomwk "Deaths by week, sex and 5-year age group")
-- Download the age structure statistics also from [EuroStat](https://ec.europa.eu/eurostat/databrowser/view/demo_pjan/default/table?lang=en "Population on 1 January by age and sex")
-- Download the Covid vaccination statistics from the [ECDC web site](https://www.ecdc.europa.eu/en/publications-data/data-covid-19-vaccination-eu-eea "Data on COVID-19 vaccination in the EU/EEA"). 
-- Insert all the statistics in a SQLite database named *EuropeanMortality.db*
-- Calculate weekly death statistics by 5 years age interval standardized according to the age structure
+Download the prebuilt Windows executable:
+[Download EuropeanMortality.zip](https://github.com/devjnh/EuropeanMortalityAnalyzer/releases/latest/download/EuropeanMortality.zip)
 
-The first execution will take some time to download and insert all the data in the database and then build the death statistics. So, you need to be patient.
+Extract the zip file into a new folder and launch `EuropeanMortalityAnalyzer.exe`.
 
-Then at every execution, the program will generate some MS Excel spreadsheet depending on the command line.
-By default the following files are generated:
-  
-- *Europe - West.xlsx* Mortality of countries of west europa
-- *Europe - West 10-40.xlsx* Mortality of countries of west Europa for the age of 10 years to 40 years excluded.
+### First run
 
-Here is what the example batch file looks like :
+The first run:
 
-    EuropeanMortalityAnalyzer.exe countries -–country FR ES IT
-    EuropeanMortalityAnalyzer.exe countries -–country FR ES IT --MinAge 5 --MaxAge 40 
-    EuropeanMortalityAnalyzer.exe area -–area FR ES IT –area “France Italy Spain” --MinAge 5 --MaxAge 40
-The batch file will generate the following files:
-France.xls Mortality of France
-  
-- *Spain.xls* Mortality of Spain
-- *Italy.xls* Mortality of Italy
-- *France 5-40.xls* Mortality of France for ages from 5 to 40 years
-- *Spain 5-40.xls* Mortality of Spain for ages from 5 to 40 years
-- *Italy 5-40.xls* Mortality of Italy for ages from 5 to 40 years
-- *France Spain Italy 5-40.xls* Mortality of France, Spain and Italy together for ages from 5 to 40 years 
+1. Creates a `Data` subfolder in the working folder, where all files are stored
+2. Downloads the source files listed above into `Data/Source`
+3. Imports them into a SQLite database, `Data/EuropeanMortality.db`
+4. Calculates weekly age-standardized death statistics by 5-year age group
 
-You can run your own examples by changing various parameters. For more information on what you can specify as arguments launch:
+Downloading and importing takes a while, so please be patient. Later runs reuse the database. When the downloaded data is more than 30 days old, it is archived (as `Source.old` and `EuropeanMortality.old.db`) and fresh data is downloaded automatically.
 
-    EuropeanMortalityAnalyzer.exe help
+### Default output
+
+Run without arguments, the program generates these files in the `Data` folder:
+
+- `Europe - West.xlsx`: mortality of a group of Western European countries (LU, BE, NL, CH, FR, ES, DK, AT, IT, PT)
+- `Europe - West 10-40.xlsx`: the same for ages 10 to 40
+
+Each workbook contains one sheet per time granularity: year, July–June year, semester, quarter, month, and week with 8-week and 4-week rolling averages.
+
+### Command line
+
+The program supports these commands:
+
+| Command | Description |
+| --- | --- |
+| `countries` | One spreadsheet per country listed with `--Countries` |
+| `area` | One spreadsheet for a group of countries (`--Countries`), named after `--Area` |
+| `allcountries` | One spreadsheet for every country with recent enough EuroStat data |
+| `init` | Only download and import the data into the database |
+| `show` | Open a generated spreadsheet (`-o`) |
+| `help` | Show the available commands; `help <command>` shows that command's options |
+
+Examples:
+
+    EuropeanMortalityAnalyzer.exe countries --Countries FR ES IT
+    EuropeanMortalityAnalyzer.exe countries --Countries FR ES IT --MinAge 5 --MaxAge 40
+    EuropeanMortalityAnalyzer.exe area --Countries FR ES IT --Area "France Italy Spain" --MinAge 5 --MaxAge 40 --Show
+
+They generate:
+
+- `France.xlsx`, `Spain.xlsx`, `Italy.xlsx`: mortality of each country
+- `France 5-40.xlsx`, `Spain 5-40.xlsx`, `Italy 5-40.xlsx`: the same for ages 5 to 40
+- `France Italy Spain 5-40.xlsx`: mortality of the three countries together for ages 5 to 40, opened in Excel at the end
+
+Countries use EuroStat codes, which are mostly ISO 3166 codes, except `EL` for Greece.
+
+Main options (option names are case-sensitive):
+
+| Option | Description | Default |
+| --- | --- | --- |
+| `--Countries` | Countries to include | |
+| `--Area` | Display name of the group of countries (`area` command) | |
+| `--MinAge`, `--MaxAge` | Age range included in the analysis | all ages |
+| `-g`, `--Gender` | `All`, `Male` or `Female` | `All` |
+| `--MinYearRegression`, `--MaxYearRegression` | Years used for the baseline regression | 2012, 2020 |
+| `--ExcessSince` | Start date used for the total excess calculation | 2021-07-01 |
+| `-i`, `--Injections` | Show Covid-19 vaccine injections | off |
+| `-r`, `--Raw` | Also show raw (non-standardized) deaths | off |
+| `-d`, `--Delay` | Days to ignore at the end of the data, as the last weeks are often incomplete | 30 |
+| `--ZoomMinDate`, `--ZoomMaxDate` | Time range of the zoomed weekly charts | 2020-01-01, 2022-07-01 |
+| `-f`, `--folder` | Data folder | `./Data` |
+| `-o`, `--OutputFile` | Output spreadsheet name, overriding the automatic name | |
+| `--Show` | Open the spreadsheet in Excel when done | off |
 
 ## How to build the executable
-If you want to build the executable by yourself and review or change the code, you need to download the code from this repository and you need to download and install Visual Studio 2022. You can use the free [community edition](https://visualstudio.microsoft.com/vs/community/).  
-With Visual Studio open the solution *EuropeanMortalityAnalyzer.sln* and build it.
-The executable for Windows should be generated in the *EuropeanMortalityAnalyzer\bin\Debug\net72* subfolder.
-## How to distribute the executable
-For Windows computers copy the executable *EuropeanMortalityAnalyzer.exe* along with all the dll files from the *EuropeanMortalityAnalyzer\bin\Debug\net72* folder.  
-For Linux or MacOSX you can try the .NET 6 version of the executable generated in the folder *EuropeanMortalityAnalyzer\bin\Release\net6.0*. But this was not tested yet.
 
+The project targets .NET Framework 4.7.2 (Windows) and .NET 6.0.
+
+With Visual Studio 2022 (the free [community edition](https://visualstudio.microsoft.com/vs/community/) is fine), open `EuropeanMortalityAnalyzer.sln` and build it.
+
+With the .NET SDK on the command line:
+
+    dotnet build EuropeanMortalityAnalyzer.sln
+    dotnet run --project EuropeanMortalityAnalyzer -f net6.0 -- countries --Countries FR
+
+The executables are generated in `EuropeanMortalityAnalyzer\bin\<Configuration>\net472` and `EuropeanMortalityAnalyzer\bin\<Configuration>\net6.0`.
+
+## How to distribute the executable
+
+On Windows, copy `EuropeanMortalityAnalyzer.exe` together with all the DLL files (and the `x86`/`x64` subfolders containing the SQLite native library) from the `net472` output folder.
+
+On Linux or macOS, you can try the .NET 6.0 build, which hasn't been tested yet.
+
+## License
+
+See [LICENSE](LICENSE).
